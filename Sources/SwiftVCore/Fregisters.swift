@@ -41,19 +41,19 @@ public struct Fregisters {
         fregs = Array(repeating: Float64(), count: kRegisterCount)
     }
 
-    public func get(_ reg: RegName) -> Float64 {
+    public func read(_ reg: RegName) -> Float64 {
         return fregs[reg.rawValue]
     }
 
-    public mutating func set(_ reg: RegName, _ value: Float64) {
+    public mutating func write(_ reg: RegName, _ value: Float64) {
         fregs[reg.rawValue] = value
     }
 
-    public func get(_ reg: UInt64) -> Float64 {
+    public func read(_ reg: UInt64) -> Float64 {
         return fregs[Int(reg)]
     }
 
-    public mutating func set(_ reg: UInt64, _ value: Float64) {
+    public mutating func write(_ reg: UInt64, _ value: Float64) {
         fregs[Int(reg)] = value
     }
 }

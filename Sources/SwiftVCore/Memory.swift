@@ -1,7 +1,7 @@
-public let kMemorySize: UInt64 = 1024 * 1024 * 1024 // 256MB
+public let kMemorySize: UInt64 = 256 * 1024 * 1024 // 256MB
 
 public struct Memory {
-    private var mem: [UInt8]
+    var mem: [UInt8]
 
     public init(size: UInt64 = kMemorySize) {
         mem = Array(repeating: UInt8(), count: Int(size))

@@ -48,19 +48,24 @@ public struct Xregisters {
         xregs[Xregisters.RegName.a1.rawValue] = kPointerToDtb
     }
 
-    public func get(_ reg: RegName) -> UInt64 {
+    public func read(_ reg: RegName) -> UInt64 {
         return xregs[reg.rawValue]
     }
 
-    public mutating func set(_ reg: RegName, _ value: UInt64) {
+    public mutating func write(_ reg: RegName, _ value: UInt64) {
         xregs[reg.rawValue] = value
     }
 
-    public func get(_ reg: UInt64) -> UInt64 {
+    public func read(_ reg: UInt64) -> UInt64 {
         return xregs[Int(reg)]
     }
 
-    public mutating func set(_ reg: UInt64, _ value: UInt64) {
+    public mutating func write(_ reg: UInt8, _ value: UInt64) {
         xregs[Int(reg)] = value
     }
+
+    public func read(_ reg: UInt8) -> UInt64 {
+        return xregs[Int(reg)]
+    }
+
 }
