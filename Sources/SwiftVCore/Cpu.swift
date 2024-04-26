@@ -50,12 +50,14 @@ public struct Cpu {
             case .br:
                 switch funct3 {
                 case 0b000:
+                    print("beq: rs1: \(rs1), rs2: \(rs2), imm12: \(imm12)")
                     if xregs.read(rs1) == xregs.read(rs2) {
                         pc += UInt64(imm12)
                     } else {
                         pc += 4
                     }
                 case 0b001:
+                    print("bne: rs1: \(rs1), rs2: \(rs2), imm12: \(imm12)")
                     if xregs.read(rs1) != xregs.read(rs2) {
                         pc += UInt64(imm12)
                     } else {
@@ -140,18 +142,17 @@ public struct Cpu {
                 case 0b000:
                     switch funct7 {
                     case 0b0000000:
-                        xregs.write(rd, xregs.read(rs1) << xregs.read(rs2))
+                        print("add: rd: \(rd), rs1: \(rs1), rs2: \(rs2) ")
+                        xregs.write(rd, xregs.read(rs1) + xregs.read(rs2))
                         pc += 4
                     case 0b0100000:
-                        xregs.write(rd, xregs.read(rs1) >> xregs.read(rs2))
+                        xregs.write(rd, xregs.read(rs1) - xregs.read(rs2))
                         pc += 4
                     default:
                         break
                     }
                 case 0b001:
-                    print("add: rd: \(rd), rs1: \(rs1), rs2: \(rs2)")
-
-                    xregs.write(rd, xregs.read(rs1) + xregs.read(rs2))
+                    // xregs.write(rd, xregs.read(rs1) + xregs.read(rs2))
                     pc += 4
                 case 0b010:
                     xregs.write(rd, xregs.read(rs1) < xregs.read(rs2) ? 1 : 0)
@@ -173,6 +174,10 @@ public struct Cpu {
                 }
 
             default:
+                break
+            }
+
+            if pc == 20 {
                 break
             }
 
