@@ -35,25 +35,25 @@ public struct Fregisters {
         case ft11
     }
 
-    private var fregs: [Float64]
+    private var fregs: [Float32]
 
     public init() {
-        fregs = Array(repeating: Float64(), count: kRegisterCount)
+        fregs = Array(repeating: Float32(), count: kRegisterCount)
     }
 
-    public func read(_ reg: RegName) -> Float64 {
+    public func read(_ reg: RegName) -> Float32 {
         return fregs[reg.rawValue]
     }
 
-    public mutating func write(_ reg: RegName, _ value: Float64) {
+    public mutating func write(_ reg: RegName, _ value: Float32) {
         fregs[reg.rawValue] = value
     }
 
-    public func read(_ reg: UInt64) -> Float64 {
+    public func read(_ reg: UInt32) -> Float32 {
         return fregs[Int(reg)]
     }
 
-    public mutating func write(_ reg: UInt64, _ value: Float64) {
+    public mutating func write(_ reg: UInt32, _ value: Float32) {
         fregs[Int(reg)] = value
     }
 }
