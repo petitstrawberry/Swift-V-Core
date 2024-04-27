@@ -134,35 +134,12 @@ public struct Cpu {
 
     }
 
-
-    struct Alu {
-        enum FuncType {
-            case add
-            case sub
-        }
-
-        // Sign extend to 64-bit
-        static func signExtend64(val: any FixedWidthInteger, bitWidth: Int = 8) -> UInt64 {
-            // Sign extend
-            // (bitWidth) bit -> 64 bit
-            let vali64 = UInt64(val)
-            let isSigned = (vali64 & UInt64(1 << (bitWidth - 1))) != 0
-            let mask = UInt64(1 << bitWidth) - 1
-            return isSigned ? (vali64 | ~mask) : vali64
-        }
-
-        static func `func`(type: FuncType, val1: UInt8, val2: UInt8) -> UInt64 {
-            let val1i64 = signExtend64(val: val1)
-            let val2i64 = signExtend64(val: val2)
-
-            switch type {
-            case .add:
-                return val1i64 + val2i64
-            case .sub:
-                return val1i64 - val2i64
-            }
-        }
+    static func signExtend32(val: any FixedWidthInteger, bitWidth: Int = 8) -> UInt32 {
+        // Sign extend
+        // (bitWidth) bit -> 32 bit
+        let vali32 = UInt32(val)
+        let isSigned = (vali32 & UInt32(1 << (bitWidth - 1))) != 0
+        let mask = UInt32(1 << bitWidth) - 1
+        return isSigned ? (vali32 | ~mask) : vali32
     }
-
-
 }
