@@ -22,7 +22,7 @@ public class Cpu {
 
         while (!interrupt && !exception) {
             // Fetch
-            let inst: UInt32 = memory.read(pc)
+            let inst: UInt32 = memory.read32(pc)
             // Decode
             let opcode: Int = Int(inst & 0x07f)
 
