@@ -34,6 +34,72 @@ struct RV32I: InstructionSet {
             cpu.xregs.write(rd, cpu.pc &+ 4)
             cpu.pc = offset
         },
+        // BEQ
+        Instruction(name: "BEQ", type: .B, opcode: 0b1100011, funct3: 0b000) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            if cpu.xregs.read(rs1) == cpu.xregs.read(rs2) {
+                cpu.pc &+= imm
+            } else {
+                cpu.pc &+= 4
+            }
+        },
+        // BNE
+        Instruction(name: "BNE", type: .B, opcode: 0b1100011, funct3: 0b001) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            if cpu.xregs.read(rs1) != cpu.xregs.read(rs2) {
+                cpu.pc &+= imm
+            } else {
+                cpu.pc &+= 4
+            }
+        },
+        // BLT
+        Instruction(name: "BLT", type: .B, opcode: 0b1100011, funct3: 0b100) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            if Int32(bitPattern: cpu.xregs.read(rs1)) < Int32(bitPattern: cpu.xregs.read(rs2)) {
+                cpu.pc &+= imm
+            } else {
+                cpu.pc &+= 4
+            }
+        },
+        // BGE
+        Instruction(name: "BGE", type: .B, opcode: 0b1100011, funct3: 0b101) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            if Int32(bitPattern: cpu.xregs.read(rs1)) >= Int32(bitPattern: cpu.xregs.read(rs2)) {
+                cpu.pc &+= imm
+            } else {
+                cpu.pc &+= 4
+            }
+        },
+        // BLTU
+        Instruction(name: "BLTU", type: .B, opcode: 0b1100011, funct3: 0b110) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            if cpu.xregs.read(rs1) < cpu.xregs.read(rs2) {
+                cpu.pc &+= imm
+            } else {
+                cpu.pc &+= 4
+            }
+        },
+        // BGEU
+        Instruction(name: "BGEU", type: .B, opcode: 0b1100011, funct3: 0b111) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            if cpu.xregs.read(rs1) >= cpu.xregs.read(rs2) {
+                cpu.pc &+= imm
+            } else {
+                cpu.pc &+= 4
+            }
+        },
         // ADDI
         Instruction(name: "ADDI", type: .I, opcode: 0b0010011, funct3: 0b000) { cpu, inst in
             let rd = UInt8(inst >> 7 & 0b11111)
