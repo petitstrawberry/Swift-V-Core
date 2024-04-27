@@ -332,5 +332,17 @@ struct RV32I: InstructionSet {
             cpu.xregs.write(rd, cpu.xregs.read(rs1) & cpu.xregs.read(rs2))
             cpu.pc &+= 4
         },
+        // FENCE
+        Instruction(name: "FENCE", type: .I, opcode: 0b0001111, funct3: 0b000) { cpu, inst in
+            cpu.pc &+= 4
+        },
+        // ECALL
+        Instruction(name: "ECALL", type: .I, opcode: 0b1110011, funct3: 0b000) { cpu, inst in
+            cpu.pc &+= 4
+        },
+        // EBREAK
+        Instruction(name: "EBREAK", type: .I, opcode: 0b1110011, funct3: 0b000) { cpu, inst in
+            cpu.pc &+= 4
+        },
     ]
 }
