@@ -292,5 +292,45 @@ struct RV32I: InstructionSet {
             cpu.xregs.write(rd, cpu.xregs.read(rs1) < cpu.xregs.read(rs2) ? 1 : 0)
             cpu.pc &+= 4
         },
+        // XOR
+        Instruction(name: "XOR", type: .R, opcode: 0b0110011, funct3: 0b100, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) ^ cpu.xregs.read(rs2))
+            cpu.pc &+= 4
+        },
+        // SRL
+        Instruction(name: "SRL", type: .R, opcode: 0b0110011, funct3: 0b101, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) >> (cpu.xregs.read(rs2) & 0b11111))
+            cpu.pc &+= 4
+        },
+        // SRA
+        Instruction(name: "SRA", type: .R, opcode: 0b0110011, funct3: 0b101, funct7: 0b0100000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, UInt32(bitPattern: Int32(bitPattern: cpu.xregs.read(rs1)) >> (cpu.xregs.read(rs2) & 0b11111)))
+            cpu.pc &+= 4
+        },
+        // OR
+        Instruction(name: "OR", type: .R, opcode: 0b0110011, funct3: 0b110, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) | cpu.xregs.read(rs2))
+            cpu.pc &+= 4
+        },
+        // AND
+        Instruction(name: "AND", type: .R, opcode: 0b0110011, funct3: 0b111, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) & cpu.xregs.read(rs2))
+            cpu.pc &+= 4
+        },
     ]
 }
