@@ -50,7 +50,7 @@ final class SwiftVCoreTests: XCTestCase {
         }
 
         memory.write(0x0000, code)
-        var cpu = Cpu(memory: memory)
+        var cpu = Cpu(memory: memory, instructionSets: [RV32I()])
         cpu.run()
     }
 }
