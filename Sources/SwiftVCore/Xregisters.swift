@@ -1,7 +1,7 @@
 let kRegisterCount = 32
 
-let kMemoryBase: UInt64 = 0x8000_0000
-let kPointerToDtb: UInt64 = 0x1020
+let kMemoryBase: UInt32 = 0x8000_0000
+let kPointerToDtb: UInt32 = 0x1020
 
 public struct Xregisters {
     public enum RegName: Int{
@@ -39,32 +39,32 @@ public struct Xregisters {
         case t6 = 31
     }
 
-    private var xregs: [UInt64]
+    private var xregs: [UInt32]
 
     public init() {
-        xregs = Array(repeating: UInt64(), count: kRegisterCount)
+        xregs = Array(repeating: UInt32(), count: kRegisterCount)
         xregs[Xregisters.RegName.sp.rawValue] = kMemoryBase + kMemorySize
         xregs[Xregisters.RegName.a0.rawValue] = 0
         xregs[Xregisters.RegName.a1.rawValue] = kPointerToDtb
     }
 
-    public func read(_ reg: RegName) -> UInt64 {
+    public func read(_ reg: RegName) -> UInt32 {
         return xregs[reg.rawValue]
     }
 
-    public mutating func write(_ reg: RegName, _ value: UInt64) {
+    public mutating func write(_ reg: RegName, _ value: UInt32) {
         xregs[reg.rawValue] = value
     }
 
-    public func read(_ reg: UInt64) -> UInt64 {
+    public func read(_ reg: UInt32) -> UInt32 {
         return xregs[Int(reg)]
     }
 
-    public mutating func write(_ reg: UInt8, _ value: UInt64) {
+    public mutating func write(_ reg: UInt8, _ value: UInt32) {
         xregs[Int(reg)] = value
     }
 
-    public func read(_ reg: UInt8) -> UInt64 {
+    public func read(_ reg: UInt8) -> UInt32 {
         return xregs[Int(reg)]
     }
 

@@ -5,7 +5,7 @@ public struct Cpu {
         case user = 0b00
     }
 
-    var pc: UInt64 = 0
+    var pc: UInt32 = 0
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
     var mode: PriviligedMode = .machine
@@ -25,9 +25,9 @@ public struct Cpu {
             let rs1: UInt8 = UInt8((inst >> 15) & 0x01f)
             let rs2: UInt8 = UInt8((inst >> 20) & 0x01f)
             let funct7: UInt8 = UInt8((inst >> 25) & 0x07f)
-            let imm20: UInt64 = Cpu.Alu.signExtend64(val: (inst >> 12) & 0x0fffff, bitWidth: 20)
-            let imm12: UInt64 = Cpu.Alu.signExtend64(val: (inst >> 20) & 0x0fff, bitWidth: 12)
-            let imm7: UInt64 = Cpu.Alu.signExtend64(val: (inst >> 25) & 0x07f, bitWidth: 7)
+            let imm20: UInt32 = signExtend32(val: (inst >> 12) & 0x0fffff, bitWidth: 20)
+            let imm12: UInt32 = signExtend32(val: (inst >> 20) & 0x0fff, bitWidth: 12)
+            let imm7: UInt32 = signExtend32(val: (inst >> 25) & 0x07f, bitWidth: 7)
 
             print("PC: \(pc), Opcode: 0b\(String(opcode, radix: 2))")
             // print instruction from enum
@@ -78,7 +78,7 @@ public struct Cpu {
                 case 0b000:
                     print("addi: rd: \(rd), rs1: \(rs1), imm12: \(imm12)")
 
-                    xregs.write(rd, xregs.read(rs1) &+ UInt64(imm12))
+                    xregs.write(rd, xregs.read(rs1) &+ UInt32(imm12))
                     pc &+= 4
                 default:
                     break
@@ -127,19 +127,10 @@ public struct Cpu {
 
         // print registers
         for i in 0..<32 {
-            let reg = xregs.read(UInt64(i))
+            let reg = xregs.read(UInt32(i))
             // print unsigned, signed, binary
             print("x\(i): \(reg), \(Int64(bitPattern: reg))")
         }
 
-    }
-
-    static func signExtend32(val: any FixedWidthInteger, bitWidth: Int = 8) -> UInt32 {
-        // Sign extend
-        // (bitWidth) bit -> 32 bit
-        let vali32 = UInt32(val)
-        let isSigned = (vali32 & UInt32(1 << (bitWidth - 1))) != 0
-        let mask = UInt32(1 << bitWidth) - 1
-        return isSigned ? (vali32 | ~mask) : vali32
     }
 }
