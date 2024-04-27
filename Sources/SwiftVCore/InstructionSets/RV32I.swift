@@ -1,5 +1,19 @@
 struct RV32I: InstructionSet {
     let instructions: [Instruction] = [
+        // LUI
+        Instruction(name: "LUI", type: .U, opcode: 0b0110111, closure: { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let imm = signExtend32(val: (inst >> 12), bitWidth: 20)
+            cpu.xregs.write(rd, imm)
+            cpu.pc &+= 4
+        }),
+        // AUIPC
+        Instruction(name: "AUIPC", type: .U, opcode: 0b0010111, closure: { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let imm = signExtend32(val: (inst >> 12), bitWidth: 20)
+            cpu.xregs.write(rd, cpu.pc &+ imm)
+            cpu.pc &+= 4
+        }),
         // ADDI
         Instruction(name: "ADDI", type: .I, opcode: 0b0010011, funct3: 0b000, closure: { cpu, inst in
             let rd = UInt8(inst >> 7 & 0b11111)
