@@ -268,5 +268,29 @@ struct RV32I: InstructionSet {
             cpu.xregs.write(rd, cpu.xregs.read(rs1) &- cpu.xregs.read(rs2))
             cpu.pc &+= 4
         },
+        // SLL
+        Instruction(name: "SLL", type: .R, opcode: 0b0110011, funct3: 0b001, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) << (cpu.xregs.read(rs2) & 0b11111))
+            cpu.pc &+= 4
+        },
+        // SLT
+        Instruction(name: "SLT", type: .R, opcode: 0b0110011, funct3: 0b010, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) < cpu.xregs.read(rs2) ? 1 : 0)
+            cpu.pc &+= 4
+        },
+        // SLTU
+        Instruction(name: "SLTU", type: .R, opcode: 0b0110011, funct3: 0b011, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) < cpu.xregs.read(rs2) ? 1 : 0)
+            cpu.pc &+= 4
+        },
     ]
 }
