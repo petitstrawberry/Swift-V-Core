@@ -150,6 +150,36 @@ struct RV32I: InstructionSet {
             cpu.xregs.write(rd, UInt32(data))
             cpu.pc &+= 4
         },
+        // SB
+        Instruction(name: "SB", type: .S, opcode: 0b0100011, funct3: 0b000) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 7 & 0b11111_00000) | (inst >> 25 & 0b11111), bitWidth: 12)
+            let addr = cpu.xregs.read(rs1) &+ imm
+            let data = UInt8(cpu.xregs.read(rs2) & 0xFF)
+            cpu.memory.write8(addr, data)
+            cpu.pc &+= 4
+        },
+        // SH
+        Instruction(name: "SH", type: .S, opcode: 0b0100011, funct3: 0b001) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 7 & 0b11111_00000) | (inst >> 25 & 0b11111), bitWidth: 12)
+            let addr = cpu.xregs.read(rs1) &+ imm
+            let data = UInt16(cpu.xregs.read(rs2) & 0xFFFF)
+            cpu.memory.write16(addr, data)
+            cpu.pc &+= 4
+        },
+        // SW
+        Instruction(name: "SW", type: .S, opcode: 0b0100011, funct3: 0b010) { cpu, inst in
+            let rs1 = (inst >> 15) & 0b11111
+            let rs2 = (inst >> 20) & 0b11111
+            let imm = signExtend32(val: (inst >> 7 & 0b11111_00000) | (inst >> 25 & 0b11111), bitWidth: 12)
+            let addr = cpu.xregs.read(rs1) &+ imm
+            let data = cpu.xregs.read(rs2)
+            cpu.memory.write32(addr, data)
+            cpu.pc &+= 4
+        },
         // ADDI
         Instruction(name: "ADDI", type: .I, opcode: 0b0010011, funct3: 0b000) { cpu, inst in
             let rd = UInt8(inst >> 7 & 0b11111)
