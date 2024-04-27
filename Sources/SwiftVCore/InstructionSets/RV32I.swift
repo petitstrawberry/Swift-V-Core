@@ -148,6 +148,30 @@ struct RV32I: InstructionSet {
             cpu.xregs.write(rd, cpu.xregs.read(rs1) & imm)
             cpu.pc &+= 4
         },
+        // SLLI
+        Instruction(name: "SLLI", type: .I, opcode: 0b0010011, funct3: 0b001, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let shamt = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) << shamt)
+            cpu.pc &+= 4
+        },
+        // SRLI
+        Instruction(name: "SRLI", type: .I, opcode: 0b0010011, funct3: 0b101, funct7: 0b0000000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let shamt = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) >> shamt)
+            cpu.pc &+= 4
+        },
+        // SRAI
+        Instruction(name: "SRAI", type: .I, opcode: 0b0010011, funct3: 0b101, funct7: 0b0100000) { cpu, inst in
+            let rd = UInt8(inst >> 7 & 0b11111)
+            let rs1 = (inst >> 15) & 0b11111
+            let shamt = (inst >> 20) & 0b11111
+            cpu.xregs.write(rd, UInt32(bitPattern: Int32(bitPattern: cpu.xregs.read(rs1)) >> shamt))
+            cpu.pc &+= 4
+        },
         // ADD
         Instruction(name: "ADD", type: .R, opcode: 0b0110011, funct3: 0b000, funct7: 0b0000000) { cpu, inst in
             let rd = UInt8(inst >> 7 & 0b11111)
