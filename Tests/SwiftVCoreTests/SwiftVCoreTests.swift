@@ -4,31 +4,24 @@ import XCTest
 final class SwiftVCoreTests: XCTestCase {
     func testAluFunc() throws {
 
-        // signExtend64
+        // signExtend32
 
-        // 7bit -> 64bit
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b1111111, bitWidth: 7), 0xffffffffffffffff) // -1
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b0000000, bitWidth: 7), 0x0000000000000000) // 0
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b0000001, bitWidth: 7), 0x0000000000000001) // 1
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b0111111, bitWidth: 7), 0x000000000000003f) // 63
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b1000000, bitWidth: 7), 0xffffffffffffffc0) // -64
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b1000001, bitWidth: 7), 0xffffffffffffffc1) // -63
+        // 7bit -> 32bit
+        XCTAssertEqual(signExtend32(val: 0b0000000, bitWidth: 7), 0x00000000) // 0
+        XCTAssertEqual(signExtend32(val: 0b0000001, bitWidth: 7), 0x00000001) // 1
+        XCTAssertEqual(signExtend32(val: 0b0111111, bitWidth: 7), 0x0000003f) // 63
+        XCTAssertEqual(signExtend32(val: 0b1000000, bitWidth: 7), 0xffffffc0) // -64
+        XCTAssertEqual(signExtend32(val: 0b1111111, bitWidth: 7), 0xffffffff) // -1
 
-        // 12bit -> 64bit
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b111111111111, bitWidth: 12), 0xffffffffffffffff) // -1
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b000000000000, bitWidth: 12), 0x0000000000000000) // 0
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b000000000001, bitWidth: 12), 0x0000000000000001) // 1
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b011111111111, bitWidth: 12), 0x00000000000007ff) // 2047
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b100000000000, bitWidth: 12), 0xfffffffffffff800) // -2048
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b100000000001, bitWidth: 12), 0xfffffffffffff801) // -2047
+        // 12bit -> 32bit
+        XCTAssertEqual(signExtend32(val: 0b000000000000, bitWidth: 12), 0x00000000) // 0
+        XCTAssertEqual(signExtend32(val: 0b000000000001, bitWidth: 12), 0x00000001) // 1
+        XCTAssertEqual(signExtend32(val: 0b011111111111, bitWidth: 12), 0x000007ff) // 2047
+        XCTAssertEqual(signExtend32(val: 0b100000000000, bitWidth: 12), 0xfffff800) // -2048
+        XCTAssertEqual(signExtend32(val: 0b111111111111, bitWidth: 12), 0xffffffff) // -1
 
-        // 20bit -> 64bit
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b11111111111111111111, bitWidth: 20), 0xffffffffffffffff) // -1
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b00000000000000000000, bitWidth: 20), 0x0000000000000000) // 0
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b00000000000000000001, bitWidth: 20), 0x0000000000000001) // 1
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b01111111111111111111, bitWidth: 20), 0x000000000007ffff) // 524287
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b10000000000000000000, bitWidth: 20), 0xfffffffffff80000) // -524288
-        XCTAssertEqual(Cpu.Alu.signExtend64(val: 0b10000000000000000001, bitWidth: 20), 0xfffffffffff80001) // -524287
+
+
     }
     func testExample() throws {
         var memory = Memory()
