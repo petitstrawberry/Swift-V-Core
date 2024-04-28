@@ -43,18 +43,19 @@ public class Cpu {
                 print("Unknown opcode: 0b\(String(opcode, radix: 2))")
                 break
             }
-
-            if pc>20 {
-                break
-            }
-
-            print("PC: \(pc), Opcode: 0b\(String(opcode, radix: 2))")
-
         }
-        // print memory
 
-        // for i in stride(from: 0,
-        //                 to: memory.mem.count,
+        // print registers
+        for i in 0..<32 {
+            let reg = xregs.read(UInt32(i))
+            // print unsigned, signed, binary
+            print("x\(i): \(reg), \(Int32(bitPattern: reg))")
+        }
+
+        // // print memory
+
+        // for i in stride(from: 0x10000,
+        //                 to: 0x1000f,
         //                 by: 4) {
         //     print("0x\(String(i, radix: 16)):", terminator: " ")
 
@@ -64,12 +65,7 @@ public class Cpu {
         //     print("0x\(String(memory.mem[i + 3], radix: 16))")
         // }
 
-        // print registers
-        for i in 0..<32 {
-            let reg = xregs.read(UInt32(i))
-            // print unsigned, signed, binary
-            print("x\(i): \(reg), \(Int32(bitPattern: reg))")
-        }
+
 
     }
 }
