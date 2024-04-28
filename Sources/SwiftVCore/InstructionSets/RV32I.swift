@@ -38,7 +38,12 @@ struct RV32I: InstructionSet {
         Instruction(name: "BEQ", type: .B, opcode: 0b1100011, funct3: 0b000) { cpu, inst in
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            let imm = signExtend32(val:
+                (((inst >> 8) & 0b1111) << 1
+                | (((inst >> 25) & 0b11_1111) << 5)
+                | (((inst >> 7) & 0b1) << 11)
+                | (((inst >> 31) & 0b1) << 12))
+            , bitWidth: 13)
             if cpu.xregs.read(rs1) == cpu.xregs.read(rs2) {
                 cpu.pc &+= imm
             } else {
@@ -49,7 +54,12 @@ struct RV32I: InstructionSet {
         Instruction(name: "BNE", type: .B, opcode: 0b1100011, funct3: 0b001) { cpu, inst in
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            let imm = signExtend32(val:
+                (((inst >> 8) & 0b1111) << 1
+                | (((inst >> 25) & 0b11_1111) << 5)
+                | (((inst >> 7) & 0b1) << 11)
+                | (((inst >> 31) & 0b1) << 12))
+            , bitWidth: 13)
             if cpu.xregs.read(rs1) != cpu.xregs.read(rs2) {
                 cpu.pc &+= imm
             } else {
@@ -60,7 +70,12 @@ struct RV32I: InstructionSet {
         Instruction(name: "BLT", type: .B, opcode: 0b1100011, funct3: 0b100) { cpu, inst in
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            let imm = signExtend32(val:
+                (((inst >> 8) & 0b1111) << 1
+                | (((inst >> 25) & 0b11_1111) << 5)
+                | (((inst >> 7) & 0b1) << 11)
+                | (((inst >> 31) & 0b1) << 12))
+            , bitWidth: 13)
             if Int32(bitPattern: cpu.xregs.read(rs1)) < Int32(bitPattern: cpu.xregs.read(rs2)) {
                 cpu.pc &+= imm
             } else {
@@ -71,7 +86,12 @@ struct RV32I: InstructionSet {
         Instruction(name: "BGE", type: .B, opcode: 0b1100011, funct3: 0b101) { cpu, inst in
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            let imm = signExtend32(val:
+                (((inst >> 8) & 0b1111) << 1
+                | (((inst >> 25) & 0b11_1111) << 5)
+                | (((inst >> 7) & 0b1) << 11)
+                | (((inst >> 31) & 0b1) << 12))
+            , bitWidth: 13)
             if Int32(bitPattern: cpu.xregs.read(rs1)) >= Int32(bitPattern: cpu.xregs.read(rs2)) {
                 cpu.pc &+= imm
             } else {
@@ -82,7 +102,12 @@ struct RV32I: InstructionSet {
         Instruction(name: "BLTU", type: .B, opcode: 0b1100011, funct3: 0b110) { cpu, inst in
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            let imm = signExtend32(val:
+                (((inst >> 8) & 0b1111) << 1
+                | (((inst >> 25) & 0b11_1111) << 5)
+                | (((inst >> 7) & 0b1) << 11)
+                | (((inst >> 31) & 0b1) << 12))
+            , bitWidth: 13)
             if cpu.xregs.read(rs1) < cpu.xregs.read(rs2) {
                 cpu.pc &+= imm
             } else {
@@ -93,7 +118,12 @@ struct RV32I: InstructionSet {
         Instruction(name: "BGEU", type: .B, opcode: 0b1100011, funct3: 0b111) { cpu, inst in
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            let imm = signExtend32(val: (inst >> 8 & 0b1111_0000_0000) | (inst >> 25 & 0b0111_1111_0000), bitWidth: 13)
+            let imm = signExtend32(val:
+                (((inst >> 8) & 0b1111) << 1
+                | (((inst >> 25) & 0b11_1111) << 5)
+                | (((inst >> 7) & 0b1) << 11)
+                | (((inst >> 31) & 0b1) << 12))
+            , bitWidth: 13)
             if cpu.xregs.read(rs1) >= cpu.xregs.read(rs2) {
                 cpu.pc &+= imm
             } else {
@@ -340,9 +370,9 @@ struct RV32I: InstructionSet {
         Instruction(name: "ECALL", type: .I, opcode: 0b1110011, funct3: 0b000) { cpu, inst in
             cpu.pc &+= 4
         },
-        // EBREAK
-        Instruction(name: "EBREAK", type: .I, opcode: 0b1110011, funct3: 0b000) { cpu, inst in
-            cpu.pc &+= 4
-        },
+        // // EBREAK
+        // Instruction(name: "EBREAK", type: .I, opcode: 0b1110011, funct3: 0b000) { cpu, inst in
+        //     cpu.pc &+= 4
+        // },
     ]
 }
