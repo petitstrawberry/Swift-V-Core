@@ -27,16 +27,26 @@ final class SwiftVCoreTests: XCTestCase {
         var memory = Memory()
 
         let code: [UInt8] = [
-            // 3e800513
-            // 83000593
-            // 00b50633
-            // 40b506b3
+            // addi a0,zero,10
+            // addi a1,zero,0
+            // add a1,a1,a0
+            // addi a0,a0,-1
+            // bne a0,zero,-8
 
-            0x13, 0x05, 0x80, 0x3e,
-            0x93, 0x05, 0x00, 0x83,
-            0x33, 0x06, 0xb5, 0x00,
-            0xb3, 0x06, 0xb5, 0x40
+            // 0x00a00513
+            // 0x00000593
+            // 0x00a585b3
+            // 0xfff50513
+            // 0xfe051ce3
+
+            0x13, 0x05, 0xa0, 0x00,
+            0x93, 0x05, 0x00, 0x00,
+            0xb3, 0x85, 0xa5, 0x00,
+            0x13, 0x05, 0xf5, 0xff,
+            0xe3, 0x1c, 0x05, 0xfe,
         ]
+
+        let data: [UInt8] = []
 
         // print code instructions in binary format (LE)
         // example:
@@ -49,7 +59,9 @@ final class SwiftVCoreTests: XCTestCase {
             print()
         }
 
-        memory.write(0x0000, code)
+        memory.write(0x00000, code)
+        memory.write(0x10000, data)
+
         var cpu = Cpu(memory: memory, instructionSets: [RV32I()])
         cpu.run()
     }
