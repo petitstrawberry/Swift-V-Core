@@ -11,17 +11,17 @@ public struct Memory {
         return Array(mem[Int(addr)..<Int(addr) + size])
     }
 
-    public func read(_ addr: UInt32) -> UInt8 {
+    public func read8(_ addr: UInt32) -> UInt8 {
         return mem[Int(addr)]
     }
 
-    public func read(_ addr: UInt32) -> UInt16 {
+    public func read16(_ addr: UInt32) -> UInt16 {
         let intAddr = Int(addr)
         return UInt16(mem[intAddr]) as UInt16
             | UInt16(mem[intAddr + 1]) << 8 as UInt16
     }
 
-    public func read(_ addr: UInt32) -> UInt32 {
+    public func read32(_ addr: UInt32) -> UInt32 {
         let intAddr = Int(addr)
         return UInt32(mem[intAddr]) as UInt32
             | UInt32(mem[intAddr + 1]) << 8 as UInt32
@@ -35,17 +35,17 @@ public struct Memory {
         }
     }
 
-    public mutating func write(_ addr: UInt32, _ value: UInt8) {
+    public mutating func write8(_ addr: UInt32, _ value: UInt8) {
         mem[Int(addr)] = value
     }
 
-    public mutating func write(_ addr: UInt32, _ value: UInt16) {
+    public mutating func write16(_ addr: UInt32, _ value: UInt16) {
         let intAddr = Int(addr)
         mem[intAddr] = UInt8(value & 0xFF)
         mem[intAddr + 1] = UInt8((value >> 8) & 0xFF)
     }
 
-    public mutating func write(_ addr: UInt32, _ value: UInt32) {
+    public mutating func write32(_ addr: UInt32, _ value: UInt32) {
         let intAddr = Int(addr)
         mem[intAddr] = UInt8(value & 0xFF)
         mem[intAddr + 1] = UInt8((value >> 8) & 0xFF)

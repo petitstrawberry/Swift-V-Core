@@ -1,4 +1,4 @@
-public struct Cpu {
+public class Cpu {
     public enum PriviligedMode: UInt8 {
         case machine = 0b11
         case supervisor = 0b01
@@ -10,112 +10,52 @@ public struct Cpu {
     var fregs: Fregisters = Fregisters()
     var mode: PriviligedMode = .machine
     var memory: Memory
+    var instructionTable = InstructionTable()
+    public init(memory: Memory, instructionSets: [InstructionSet]) {
+        self.memory = memory
+        instructionTable.load(instructionSets: instructionSets)
+    }
 
-    public mutating func run() {
+    public func run() {
         var interrupt: Bool = false
         var exception: Bool = false
 
         while (!interrupt && !exception) {
             // Fetch
-            let inst: UInt32 = memory.read(pc)
+            let inst: UInt32 = memory.read32(pc)
             // Decode
-            let opcode: UInt8 = UInt8(inst & 0x07f)
-            let rd: UInt8 = UInt8((inst >> 7) & 0x01f)
-            let funct3: UInt8 = UInt8((inst >> 12) & 0x07)
-            let rs1: UInt8 = UInt8((inst >> 15) & 0x01f)
-            let rs2: UInt8 = UInt8((inst >> 20) & 0x01f)
-            let funct7: UInt8 = UInt8((inst >> 25) & 0x07f)
-            let imm20: UInt32 = signExtend32(val: (inst >> 12) & 0x0fffff, bitWidth: 20)
-            let imm12: UInt32 = signExtend32(val: (inst >> 20) & 0x0fff, bitWidth: 12)
-            let imm7: UInt32 = signExtend32(val: (inst >> 25) & 0x07f, bitWidth: 7)
-
-            print("PC: \(pc), Opcode: 0b\(String(opcode, radix: 2))")
-            // print instruction from enum
-            print("Opcode: \(Instruction(rawValue: opcode).debugDescription)")
+            let opcode: Int = Int(inst & 0x07f)
 
             // Execute
-            switch Instruction(rawValue: opcode) {
-            case .lui:
-                xregs.write(rd, imm20 << 12)
-                pc &+= 4
-            case .auipc:
-                xregs.write(rd, pc &+ imm20 << 12)
-                pc &+= 4
-            case .jal:
-                xregs.write(rd, pc &+ 4)
-                pc &+= imm20
-                xregs.write(rd, pc &+ 4)
-                pc = (xregs.read(rs1) &+ imm12) & ~1
-            case .br:
-                switch funct3 {
-                case 0b000:
-                    print("beq: rs1: \(rs1), rs2: \(rs2), imm12: \(imm12)")
-                    if xregs.read(rs1) == xregs.read(rs2) {
-                        pc &+= imm12
-                    } else {
-                        pc &+= 4
-                    }
-                case 0b001:
-                    print("bne: rs1: \(rs1), rs2: \(rs2), imm12: \(imm12)")
-                    if xregs.read(rs1) != xregs.read(rs2) {
-                        pc &+= imm12
-                    } else {
-                        pc &+= 4
-                    }
-                default:
-                    break
+            if let type = instructionTable.typeTable[Int(opcode)] {
+                switch type {
+                case .R:
+                    let funct3 = Int((inst >> 12) & 0x07)
+                    let funct7 = Int((inst >> 25) & 0x7f)
+                    instructionTable.rTable[opcode][funct7][funct3]?.execute(cpu: self, inst: inst)
+                case .I, .S, .B:
+                    let funct3 = Int((inst >> 12) & 0x07)
+                    instructionTable.isbTable[opcode][funct3]?.execute(cpu: self, inst: inst)
+                case .U, .J:
+                    instructionTable.ujTable[opcode]?.execute(cpu: self, inst: inst)
                 }
-            case .ld:
-                let addr = xregs.read(rs1) &+ imm12
-                xregs.write(rd, memory.read(addr))
-                pc &+= 4
-            case .st:
-                let addr = xregs.read(rs1) &+ imm12
-                memory.write(addr, xregs.read(rs2))
-                pc &+= 4
-            case .imm:
-                switch funct3 {
-                case 0b000:
-                    print("addi: rd: \(rd), rs1: \(rs1), imm12: \(imm12)")
-
-                    xregs.write(rd, xregs.read(rs1) &+ UInt32(imm12))
-                    pc &+= 4
-                default:
-                    break
-                }
-            case .alu:
-                switch funct3 {
-                case 0b000:
-                    switch funct7 {
-                    case 0b0000000:
-                        print("add: rd: \(rd), rs1: \(rs1), rs2: \(rs2) ")
-                        xregs.write(rd, xregs.read(rs1) &+ xregs.read(rs2))
-                        print("\(xregs.read(rd)) = \(xregs.read(rs1)) + \(xregs.read(rs2))")
-                        pc &+= 4
-                    case 0b0100000:
-                        print("sub: rd: \(rd), rs1: \(rs1), rs2: \(rs2) ")
-                        xregs.write(rd, xregs.read(rs1) &- xregs.read(rs2))
-                        pc &+= 4
-                    default:
-                        break
-                    }
-                default:
-                    break
-                }
-
-            default:
+            } else {
+                print("Unknown opcode: 0b\(String(opcode, radix: 2))")
                 break
             }
-
-            if pc > 12{
-                break
-            }
-
         }
-        // print memory
 
-        // for i in stride(from: 0,
-        //                 to: memory.mem.count,
+        // print registers
+        for i in 0..<32 {
+            let reg = xregs.read(UInt32(i))
+            // print unsigned, signed, binary
+            print("x\(i): \(reg), \(Int32(bitPattern: reg))")
+        }
+
+        // // print memory
+
+        // for i in stride(from: 0x10000,
+        //                 to: 0x1000f,
         //                 by: 4) {
         //     print("0x\(String(i, radix: 16)):", terminator: " ")
 
@@ -125,12 +65,7 @@ public struct Cpu {
         //     print("0x\(String(memory.mem[i + 3], radix: 16))")
         // }
 
-        // print registers
-        for i in 0..<32 {
-            let reg = xregs.read(UInt32(i))
-            // print unsigned, signed, binary
-            print("x\(i): \(reg), \(Int64(bitPattern: reg))")
-        }
+
 
     }
 }
