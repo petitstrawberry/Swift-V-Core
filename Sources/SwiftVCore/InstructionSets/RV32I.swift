@@ -17,13 +17,14 @@ struct RV32I: InstructionSet {
         // JAL
         Instruction(name: "JAL", type: .J, opcode: 0b1101111) { cpu, inst in
             let rd = UInt8(inst >> 7 & 0b11111)
-            let imm = signExtend32(val: (inst >> 12), bitWidth: 8)
-            let imm1 = signExtend32(val: (inst >> 20 & 0b11111), bitWidth: 1)
-            let imm2 = signExtend32(val: (inst >> 21 & 0b1111111111), bitWidth: 10)
-            let imm3 = signExtend32(val: (inst >> 31), bitWidth: 1)
-            let offset = (imm3 << 20) | (imm2 << 1) | (imm1 << 11) | imm
+            let imm = signExtend32(val:
+                (((inst >> 21) & 0b1111111111) << 1
+                | (((inst >> 20) & 0b1) << 11)
+                | (((inst >> 12) & 0b11111111) << 12)
+                | (((inst >> 31) & 0b1) << 20))
+            , bitWidth: 21)
             cpu.xregs.write(rd, cpu.pc &+ 4)
-            cpu.pc &+= offset
+            cpu.pc &+= imm
         },
         // JALR
         Instruction(name: "JALR", type: .I, opcode: 0b1100111, funct3: 0b000) { cpu, inst in
