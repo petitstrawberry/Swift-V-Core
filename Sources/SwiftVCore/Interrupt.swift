@@ -1,5 +1,5 @@
 public struct Interrupt: Trap {
-    public let exceptionCode: UInt8
+    public let exceptionCode: UInt32
     public let interrupt: Bool = true
     public let priority: UInt8
 }
