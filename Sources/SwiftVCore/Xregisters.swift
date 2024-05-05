@@ -53,6 +53,9 @@ public struct Xregisters {
     }
 
     public mutating func write(_ reg: RegName, _ value: UInt32) {
+        if reg == .zero {
+            return
+        }
         xregs[reg.rawValue] = value
     }
 
@@ -60,7 +63,17 @@ public struct Xregisters {
         return xregs[Int(reg)]
     }
 
+    public mutating func write(_ reg: UInt32, _ value: UInt32) {
+        if reg == 0 {
+            return
+        }
+        xregs[Int(reg)] = value
+    }
+
     public mutating func write(_ reg: UInt8, _ value: UInt32) {
+        if reg == 0 {
+            return
+        }
         xregs[Int(reg)] = value
     }
 

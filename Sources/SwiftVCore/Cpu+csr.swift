@@ -1,5 +1,5 @@
 extension Cpu {
-    public func readCsr(addr: UInt32) throws -> UInt32 {
+    public func readCsr(_ addr: UInt32) throws -> UInt32 {
         if let csr = csrBank.csrs[Int(addr)] {
             if csr.mode.rawValue >= mode.rawValue {
                 return try csr.read(cpu: self)
@@ -11,7 +11,7 @@ extension Cpu {
         }
     }
 
-    public func writeCsr(addr: UInt32, _ newValue: UInt32) throws {
+    public func writeCsr(_ addr: UInt32, _ newValue: UInt32) throws {
         if let csr = csrBank.csrs[Int(addr)] {
             if csr.mode.rawValue >= mode.rawValue {
                 try csr.write(cpu: self, value: newValue)
