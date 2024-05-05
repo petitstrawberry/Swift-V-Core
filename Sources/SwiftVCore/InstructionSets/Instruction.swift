@@ -28,12 +28,7 @@ public struct Instruction: Identifiable {
         self.closure = closure
     }
 
-    func execute(cpu: Cpu, inst: UInt32) {
-        print("Execute: \(name)")
-        do {
-            try closure(cpu, inst)
-        } catch {
-            print("Error: \(error)")
-        }
+    func execute(cpu: Cpu, inst: UInt32) throws {
+        try closure(cpu, inst)
     }
 }
