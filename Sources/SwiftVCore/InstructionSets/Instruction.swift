@@ -17,9 +17,9 @@ public struct Instruction: Identifiable {
     public let funct3: UInt8?
     public let funct7: UInt8?
 
-    public let closure: (Cpu, UInt32) -> Void
+    public let closure: (Cpu, UInt32) throws -> Void
 
-    public init(name: String, type: InstructionType, opcode: UInt8, funct3: UInt8? = nil, funct7: UInt8? = nil, closure: @escaping (Cpu, UInt32) -> Void) {
+    public init(name: String, type: InstructionType, opcode: UInt8, funct3: UInt8? = nil, funct7: UInt8? = nil, closure: @escaping (Cpu, UInt32) throws -> Void) {
         self.name = name
         self.type = type
         self.opcode = opcode
@@ -29,6 +29,11 @@ public struct Instruction: Identifiable {
     }
 
     func execute(cpu: Cpu, inst: UInt32) {
-        closure(cpu, inst)
+        print("Execute: \(name)")
+        do {
+            try closure(cpu, inst)
+        } catch {
+            print("Error: \(error)")
+        }
     }
 }
