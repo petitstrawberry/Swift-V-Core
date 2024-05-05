@@ -47,11 +47,11 @@ final class SwiftVCoreTests: XCTestCase {
         ]
 
         let data: [UInt8] = []
-        
+
         memory.write(0x00000, code)
         memory.write(0x10000, data)
 
-        var cpu = Cpu(memory: memory, instructionSets: [RV32I()])
+        var cpu = Cpu(memory: memory, instructionSets: [RV32I(), ZiCsr()])
         cpu.run()
     }
 }
