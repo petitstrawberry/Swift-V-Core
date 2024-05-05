@@ -60,6 +60,10 @@ public struct Xregisters {
         return xregs[Int(reg)]
     }
 
+    public mutating func write(_ reg: UInt32, _ value: UInt32) {
+        xregs[Int(reg)] = value
+    }
+
     public mutating func write(_ reg: UInt8, _ value: UInt32) {
         xregs[Int(reg)] = value
     }
