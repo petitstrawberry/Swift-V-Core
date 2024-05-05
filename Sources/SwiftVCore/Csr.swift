@@ -55,7 +55,7 @@ public class Csr: CsrProtocol {
         }
     }
 
-    public init(name: String, addr: UInt32, value: UInt32 = 0) {
+    public required init(name: String, addr: UInt32, value: UInt32 = 0) {
         self.name = name
         self.addr = addr
         self.value = value
