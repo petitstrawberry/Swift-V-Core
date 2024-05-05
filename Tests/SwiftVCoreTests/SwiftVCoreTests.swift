@@ -53,7 +53,8 @@ final class SwiftVCoreTests: XCTestCase {
             memory: memory,
             instructionSets: [
                 RV32I(),
-                ZiCsr()
+                ZiCsr(),
+                MachineLevelISA()
             ]
         )
 
