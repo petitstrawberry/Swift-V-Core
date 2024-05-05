@@ -1,3 +1,7 @@
+extension CsrBank.RegAddr {
+    static let mstatush: UInt32 = 0x301
+}
+
 class Mstatush: Csr {
     public required init(name: String, addr: UInt32, value: UInt32 = 0) {
         super.init(name: name, addr: addr, value: value)

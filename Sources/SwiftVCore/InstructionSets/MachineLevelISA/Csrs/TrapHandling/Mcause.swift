@@ -1,10 +1,14 @@
+extension CsrBank.RegAddr {
+    static let mcause: UInt32 = 0x342
+}
+
 class Mcause: Csr {
     public required init(name: String, addr: UInt32, value: UInt32 = 0) {
         super.init(name: name, addr: addr, value: value)
     }
 
     init() {
-        super.init(name: "mcause", addr: 0x344, value: 0)
+        super.init(name: "mcause", addr: 0x342, value: 0)
     }
 
     override func read(cpu: Cpu) throws -> UInt32 {
