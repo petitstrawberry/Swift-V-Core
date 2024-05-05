@@ -20,10 +20,8 @@ final class SwiftVCoreTests: XCTestCase {
         XCTAssertEqual(signExtend32(val: 0b100000000000, bitWidth: 12), 0xfffff800) // -2048
         XCTAssertEqual(signExtend32(val: 0b111111111111, bitWidth: 12), 0xffffffff) // -1
 
-
-
     }
-    func testExample() throws {
+    func testExecuteCode() throws {
         var memory = Memory()
 
         let code: [UInt8] = [
@@ -43,7 +41,7 @@ final class SwiftVCoreTests: XCTestCase {
             0x93, 0x05, 0x00, 0x00,
             0xb3, 0x85, 0xa5, 0x00,
             0x13, 0x05, 0xf5, 0xff,
-            0xe3, 0x1c, 0x05, 0xfe,
+            0xe3, 0x1c, 0x05, 0xfe
         ]
 
         let data: [UInt8] = []
@@ -51,7 +49,14 @@ final class SwiftVCoreTests: XCTestCase {
         memory.write(0x00000, code)
         memory.write(0x10000, data)
 
-        var cpu = Cpu(memory: memory, instructionSets: [RV32I(), ZiCsr()])
+        let cpu = Cpu(
+            memory: memory,
+            instructionSets: [
+                RV32I(),
+                ZiCsr()
+            ]
+        )
+
         cpu.run()
     }
 }

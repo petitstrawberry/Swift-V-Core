@@ -22,36 +22,42 @@ public class Cpu {
     }
 
     public func run() {
-        var interrupt: Bool = false
-        var exception: Bool = false
+        var halt = false
 
-        while (!interrupt && !exception) {
+        while (!halt) {
             // Fetch
             let inst: UInt32 = memory.read32(pc)
 
             // Decode
             let opcode: Int = Int(inst & 0b111_1111)
             print("PC: 0x\(String(pc, radix: 16)) inst: 0b\(String(inst, radix: 2)) Opcode: 0b\(String(opcode, radix: 2))")
-            // Execute
-            if let type = instructionTable.typeTable[Int(opcode)] {
-                switch type {
-                case .R:
-                    let funct3 = Int((inst >> 12) & 0x07)
-                    let funct7 = Int((inst >> 25) & 0x7f)
-                    try instructionTable.rTable[opcode][funct7][funct3]?.execute(cpu: self, inst: inst)
-                case .I, .S, .B:
-                    let funct3 = Int((inst >> 12) & 0x07)
-                    try instructionTable.isbTable[opcode][funct3]?.execute(cpu: self, inst: inst)
-                case .U, .J:
-                    try instructionTable.ujTable[opcode]?.execute(cpu: self, inst: inst)
+            do {
+                // Execute
+                if let type = instructionTable.typeTable[Int(opcode)] {
+                    switch type {
+                    case .R:
+                        let funct3 = Int((inst >> 12) & 0x07)
+                        let funct7 = Int((inst >> 25) & 0x7f)
+                        try instructionTable.rTable[opcode][funct7][funct3]?.execute(cpu: self, inst: inst)
+                    case .I, .S, .B:
+                        let funct3 = Int((inst >> 12) & 0x07)
+                        try instructionTable.isbTable[opcode][funct3]?.execute(cpu: self, inst: inst)
+                    case .U, .J:
+                        try instructionTable.ujTable[opcode]?.execute(cpu: self, inst: inst)
+                    }
+                } else {
+                    print("Unknown opcode: 0b\(String(opcode, radix: 2))")
+                    break
                 }
-            } else {
-                print("Unknown opcode: 0b\(String(opcode, radix: 2))")
-
-                break
+            } catch Trap.interrupt(let interrupt) {
+                print("Interrupt: \(interrupt)")
+            } catch Trap.exception(let exception) {
+                print("Exception: \(exception)")
+            } catch {
+                print("Unknown exception: \(error.localizedDescription)")
+                halt = true
             }
         }
-
         // print registers
         for i in 0..<32 {
             let reg = xregs.read(UInt32(i))

@@ -4,10 +4,10 @@ extension Cpu {
             if csr.mode.rawValue >= mode.rawValue {
                 return try csr.read(cpu: self)
             } else {
-                throw Exception.illegalInstruction
+                throw Trap.exception(.illegalInstruction)
             }
         } else {
-            throw Exception.illegalInstruction
+            throw Trap.exception(.illegalInstruction)
         }
     }
 
@@ -16,10 +16,10 @@ extension Cpu {
             if csr.mode.rawValue >= mode.rawValue {
                 try csr.write(cpu: self, value: newValue)
             } else {
-                throw Exception.illegalInstruction
+                throw Trap.exception(.illegalInstruction)
             }
         } else {
-            throw Exception.illegalInstruction
+            throw Trap.exception(.illegalInstruction)
         }
     }
 }

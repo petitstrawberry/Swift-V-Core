@@ -43,7 +43,7 @@ public class Csr: CsrProtocol {
         if privilige.rawValue & Privilige.read.rawValue > 0 {
             return value
         } else {
-            throw Exception.illegalInstruction
+            throw Trap.exception(.illegalInstruction)
         }
     }
 
@@ -51,7 +51,7 @@ public class Csr: CsrProtocol {
         if privilige.rawValue & Privilige.write.rawValue > 0 {
             self.value = value
         } else {
-            throw Exception.illegalInstruction
+            throw Trap.exception(.illegalInstruction)
         }
     }
 
