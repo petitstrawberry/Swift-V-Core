@@ -9,7 +9,7 @@ public class Cpu {
     var pc: UInt32 = 0
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
-    var csrBank: CsrBank
+    var csrBank: CsrBank = CsrBank()
 
     var mode: PriviligedMode = .machine
     var memory: Memory
@@ -18,7 +18,7 @@ public class Cpu {
     public init(memory: Memory, instructionSets: [InstructionSet]) {
         self.memory = memory
         instructionTable.load(instructionSets: instructionSets)
-        csrBank = CsrBank(instructionSets: instructionSets)
+        csrBank.load(instructionSets: instructionSets)
     }
 
     public func run() {
