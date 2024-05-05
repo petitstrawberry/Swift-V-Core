@@ -1,10 +1,10 @@
 import Foundation
-public protocol Trap: Equatable {
+public protocol Trap: Equatable, Error {
     var exceptionCode: UInt32 { get }
     var interrupt: Bool { get }
     var priority: UInt8 { get }
     static func == (lhs: any Trap, rhs: any Trap) -> Bool
-    static func getCause() -> UInt32
+    func getCause() -> UInt32
 }
 
 extension Trap {
@@ -13,7 +13,7 @@ extension Trap {
             && lhs.interrupt == rhs.interrupt
     }
 
-    public  func getCause() -> UInt32 {
+    public func getCause() -> UInt32 {
         return exceptionCode | (interrupt ? 1 : 0) << 31
     }
 }
