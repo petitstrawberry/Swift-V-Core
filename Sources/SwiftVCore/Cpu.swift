@@ -1,6 +1,6 @@
 public class Cpu {
 
-    public enum PriviligedMode: UInt8 {
+    public enum PriviligedMode: UInt32 {
         case machine = 0b11
         case supervisor = 0b01
         case user = 0b00
@@ -19,6 +19,17 @@ public class Cpu {
         self.memory = memory
         instructionTable.load(instructionSets: instructionSets)
         csrBank.load(instructionSets: instructionSets)
+    }
+
+
+    enum CpuError: Error {
+        case panic(String) // もうどうしよううもない時にpanic
+        case notImplemented
+    }
+
+    public func panic(msg: String) throws {
+        print("Panic")
+        throw CpuError.panic(msg)
     }
 
     public func run() {
@@ -47,14 +58,26 @@ public class Cpu {
                     }
                 } else {
                     print("Unknown opcode: 0b\(String(opcode, radix: 2))")
-                    break
+                    // break
+                    throw Trap.exception(.illegalInstruction, tval: pc)
                 }
-            } catch Trap.interrupt(let interrupt) {
-                print("Interrupt: \(interrupt)")
-            } catch Trap.exception(let exception) {
-                print("Exception: \(exception)")
+            } catch Trap.interrupt(let interrupt, tval: let tval) {
+                do {
+                    // TODO: Interrupt
+                    // try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
+                } catch {
+                    print("Trap Error: \(error.localizedDescription)")
+                    halt = true
+                }
+            } catch Trap.exception(let exception, tval: let tval) {
+                do {
+                    try handleTrap(interrupt: false, trap: exception.rawValue, tval: tval)
+                } catch {
+                    print("Trap Error: \(error.localizedDescription)")
+                    halt = true
+                }
             } catch {
-                print("Unknown exception: \(error.localizedDescription)")
+                print("Unknown Trap: \(error.localizedDescription)")
                 halt = true
             }
         }
