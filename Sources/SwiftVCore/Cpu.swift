@@ -21,7 +21,6 @@ public class Cpu {
         csrBank.load(instructionSets: instructionSets)
     }
 
-
     enum CpuError: Error {
         case panic(String) // もうどうしよううもない時にpanic
         case notImplemented
@@ -30,6 +29,18 @@ public class Cpu {
     public func panic(msg: String) throws {
         print("Panic")
         throw CpuError.panic(msg)
+    }
+
+    public func readMem8(_ addr: UInt32) -> UInt8 {
+        return memory.read8(addr)
+    }
+
+    public func readMem16(_ addr: UInt32) -> UInt16 {
+        return memory.read16(addr)
+    }
+
+    public func readMem32(_ addr: UInt32) -> UInt32 {
+        return memory.read32(addr)
     }
 
     public func run() {
