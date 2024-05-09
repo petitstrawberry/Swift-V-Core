@@ -1,27 +1,13 @@
 struct Mmu {
-
-    enum AddressingMode: UInt8 {
-        case bare = 0b0
-        case sv32 = 0b1
-
-        func getTranslator() -> VaddrTranslator.Type {
-            switch self {
-            case .bare:
-                return Bare.self
-            case .sv32:
-                return Sv32.self
-            }
-        }
-    }
-
-    protocol VaddrTranslator {
-        static func translate(vaddr: UInt32) throws -> UInt32
-    }
-
     let cpu: Cpu
 
     var priviligedMode: Cpu.PriviligedMode {
         return cpu.mode
+    }
+
+    enum AddressingMode: UInt8 {
+        case bare = 0b0
+        case sv32 = 0b1
     }
 
     var addressingMode: AddressingMode {
@@ -30,7 +16,32 @@ struct Mmu {
         return .bare
     }
 
+    protocol VaddrTranslator {
+        var cpu: Cpu { get }
+        static var vaddrSize: Int { get }
+        static var pageSize: Int { get }
+        static var pteSize: Int { get }
+
+        func translate(vaddr: UInt32) throws -> UInt32
+    }
+
+    let bareVaddrTranslator: Bare
+    let sv32VaddrTranslator: Sv32
+
+    init(cpu: Cpu) {
+        self.cpu = cpu
+        self.bareVaddrTranslator = Bare(cpu: cpu)
+        self.sv32VaddrTranslator = Sv32(cpu: cpu)
+    }
+
     func translate(vaddr: UInt32, write: Bool) throws -> UInt32 {
-        return try addressingMode.getTranslator().translate(vaddr: vaddr)
+        let translator: any VaddrTranslator = switch addressingMode {
+        case .bare:
+            bareVaddrTranslator
+        case .sv32:
+            sv32VaddrTranslator
+        }
+
+        return try translator.translate(vaddr: vaddr)
     }
 }
