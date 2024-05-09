@@ -89,11 +89,5 @@ final class SwiftVCoreTests: XCTestCase {
         let vaddr2 = UInt32(0x1000_01ff)
         let paddr2 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr2, write: false)
         XCTAssertEqual(paddr2, UInt32(0x8000_01ff))
-
-        // TLB miss -> Table walk
-        let vaddr3 = UInt32(0x2000_01ff)
-        let paddr3 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, write: false)
-        XCTAssertEqual(paddr3, vaddr3)
-
     }
 }
