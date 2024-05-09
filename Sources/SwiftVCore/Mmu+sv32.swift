@@ -1,20 +1,20 @@
 extension Mmu {
 
     struct Sv32: VaddrTranslator {
-        let cpu: Cpu
         let tlb = Tlb()
         static let vaddrSize = 32 // 32-bit virtual address
         static let pageSize = 4096 // 4KiB page size
         static let pteSize = 4 // 4 bytes per PTE
 
-        func translate(vaddr: UInt32) throws -> UInt32 {
+        func translate(cpu: Cpu, vaddr: UInt32) throws -> UInt32 {
             if let entry = tlb.get(vpn: vaddr >> 12, asid: 0) {
                 return entry.ppn << 12 + vaddr & 0xfff
             }
-            return try walk(vaddr: vaddr)
+
+            return try walk(cpu: cpu, vaddr: vaddr)
         }
 
-        func walk(vaddr: UInt32) throws -> UInt32 {
+        func walk(cpu: Cpu, vaddr: UInt32) throws -> UInt32 {
             let satp = cpu.getRawCsr(CsrBank.RegAddr.satp) as Satp
             var ppn: [UInt32] = [
                 0,
@@ -30,7 +30,7 @@ extension Mmu {
             var x = satp.read(cpu: cpu, field: .ppn) * UInt32(Mmu.Sv32.pageSize)
 
             for i in stride(from: 1, to: 0, by: -1) {
-                let pte = Pte(pte: cpu.readMem32(x + vpn[i] * UInt32(Mmu.Sv32.pteSize)))
+                let pte = Pte(pte: try cpu.readMem32(x + vpn[i] * UInt32(Mmu.Sv32.pteSize)))
 
                 if !pte.valid {
                     throw Trap.exception(.loadPageFault, tval: vaddr)

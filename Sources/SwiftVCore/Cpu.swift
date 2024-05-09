@@ -10,6 +10,7 @@ public class Cpu {
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
     var csrBank: CsrBank = CsrBank()
+    let mmu: Mmu = Mmu()
 
     var mode: PriviligedMode = .machine
     var memory: Memory
@@ -31,16 +32,44 @@ public class Cpu {
         throw CpuError.panic(msg)
     }
 
-    public func readMem8(_ addr: UInt32) -> UInt8 {
+    public func readMem(_ addr: UInt32, size: UInt32) throws -> [UInt8] {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: false)
+        return memory.read(addr, Int(size))
+    }
+
+    public func writeMem(_ addr: UInt32, data: [UInt8]) throws {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: true)
+        memory.write(addr, data)
+    }
+
+    public func readMem8(_ addr: UInt32) throws -> UInt8 {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: false)
         return memory.read8(addr)
     }
 
-    public func readMem16(_ addr: UInt32) -> UInt16 {
+    public func readMem16(_ addr: UInt32) throws -> UInt16 {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: false)
         return memory.read16(addr)
     }
 
-    public func readMem32(_ addr: UInt32) -> UInt32 {
+    public func readMem32(_ addr: UInt32) throws -> UInt32 {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: false)
         return memory.read32(addr)
+    }
+
+    public func writeMem8(_ addr: UInt32, data: UInt8) throws {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: true)
+        memory.write8(addr, data)
+    }
+
+    public func writeMem16(_ addr: UInt32, data: UInt16) throws {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: true)
+        memory.write16(addr, data)
+    }
+
+    public func writeMem32(_ addr: UInt32, data: UInt32) throws {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, write: true)
+        memory.write32(addr, data)
     }
 
     public func run() {
@@ -48,7 +77,7 @@ public class Cpu {
 
         while (!halt) {
             // Fetch
-            let inst: UInt32 = memory.read32(pc)
+            let inst: UInt32 = try! readMem32(pc)
 
             // Decode
             let opcode: Int = Int(inst & 0b111_1111)
