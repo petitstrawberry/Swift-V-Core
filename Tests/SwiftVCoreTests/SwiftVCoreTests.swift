@@ -54,10 +54,46 @@ final class SwiftVCoreTests: XCTestCase {
             instructionSets: [
                 RV32I(),
                 ZiCsr(),
-                MachineLevelISA()
+                MachineLevelISA(),
+                SupervisorLevelISA()
             ]
         )
 
         cpu.run()
+    }
+
+    func testMmu() throws {
+
+        let cpu = Cpu(
+            memory: Memory(),
+            instructionSets: [
+                RV32I(),
+                ZiCsr(),
+                MachineLevelISA(),
+                SupervisorLevelISA()
+            ]
+        )
+
+        let vaddr = UInt32(0x00000000)
+        let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, write: false)
+
+        XCTAssertEqual(paddr, vaddr)
+
+        let satp = cpu.getRawCsr(CsrBank.RegAddr.satp)
+        try satp.write(cpu: cpu, value: 0x80000000)
+
+        // TLB match
+        cpu.mmu.tlb.add(entry: .init(valid: true, read: true, write: true, execute: true,
+            user: true, global: true, accessed: false, dirty: false, asid: 0, ppn: 0x80000, vpn: 0x10000))
+
+        let vaddr2 = UInt32(0x1000_01ff)
+        let paddr2 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr2, write: false)
+        XCTAssertEqual(paddr2, UInt32(0x8000_01ff))
+
+        // TLB miss -> Table walk
+        let vaddr3 = UInt32(0x2000_01ff)
+        let paddr3 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, write: false)
+        XCTAssertEqual(paddr3, vaddr3)
+
     }
 }
