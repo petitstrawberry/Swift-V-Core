@@ -72,6 +72,30 @@ public class Cpu {
         memory.write32(addr, data)
     }
 
+    public func readRawMem8(_ addr: UInt32) -> UInt8 {
+        return memory.read8(addr)
+    }
+
+    public func readRawMem16(_ addr: UInt32) -> UInt16 {
+        return memory.read16(addr)
+    }
+
+    public func readRawMem32(_ addr: UInt32) -> UInt32 {
+        return memory.read32(addr)
+    }
+
+    public func writeRawMem8(_ addr: UInt32, data: UInt8) {
+        memory.write8(addr, data)
+    }
+
+    public func writeRawMem16(_ addr: UInt32, data: UInt16) {
+        memory.write16(addr, data)
+    }
+
+    public func writeRawMem32(_ addr: UInt32, data: UInt32) {
+        memory.write32(addr, data)
+    }
+
     public func run() {
         var halt = false
 

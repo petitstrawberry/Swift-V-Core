@@ -25,7 +25,7 @@ extension Mmu {
             var x = satp.read(cpu: cpu, field: .ppn) * UInt32(Mmu.Sv32.pageSize)
 
             for i in stride(from: 1, to: 0, by: -1) {
-                let pte = Pte(pte: try cpu.readMem32(x + vpn[i] * UInt32(Mmu.Sv32.pteSize)))
+                let pte = Pte(pte: cpu.readRawMem32(x + vpn[i] * UInt32(Mmu.Sv32.pteSize)))
 
                 if !pte.valid {
                     throw Trap.exception(.loadPageFault, tval: vaddr)
