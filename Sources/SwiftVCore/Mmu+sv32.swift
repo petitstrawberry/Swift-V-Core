@@ -102,7 +102,7 @@ extension Mmu.Sv32.Tlb {
         var tag: UInt32 = 0
 
         func match(vpn: UInt32, asid: UInt32) -> Bool {
-            return self.vpn == vpn && self.asid == asid
+            return self.vpn == vpn && self.asid == asid && valid
         }
     }
 }
