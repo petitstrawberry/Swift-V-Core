@@ -1,16 +1,11 @@
 extension Mmu {
 
     struct Sv32: VaddrTranslator {
-        let tlb = Tlb()
         static let vaddrSize = 32 // 32-bit virtual address
         static let pageSize = 4096 // 4KiB page size
         static let pteSize = 4 // 4 bytes per PTE
 
         func translate(cpu: Cpu, vaddr: UInt32) throws -> UInt32 {
-            if let entry = tlb.get(vpn: vaddr >> 12, asid: 0) {
-                return entry.ppn << 12 + vaddr & 0xfff
-            }
-
             return try walk(cpu: cpu, vaddr: vaddr)
         }
 
@@ -71,38 +66,6 @@ extension Mmu.Sv32 {
             dirty = pte & 0x80 != 0
             ppn[0] = (pte >> 10) & 0x3ff
             ppn[1] = (pte >> 20) & 0xfff
-        }
-    }
-
-    struct Tlb {
-        static let size = 256
-        var entries: [Entry] = Array(repeating: Entry(), count: size)
-
-        func get(vpn: UInt32, asid: UInt32) -> Entry? {
-            return entries.first { $0.match(vpn: vpn, asid: asid) }
-        }
-    }
-}
-
-extension Mmu.Sv32.Tlb {
-    struct Entry {
-        var valid: Bool = false
-        var read: Bool = false
-        var write: Bool = false
-        var execute: Bool = false
-        var user: Bool = false
-        var global: Bool = false
-        var accessed: Bool = false
-        var dirty: Bool = false
-
-        var asid: UInt32 = 0
-        var ppn: UInt32 = 0
-        var vpn: UInt32 = 0
-
-        var tag: UInt32 = 0
-
-        func match(vpn: UInt32, asid: UInt32) -> Bool {
-            return self.vpn == vpn && self.asid == asid && valid
         }
     }
 }

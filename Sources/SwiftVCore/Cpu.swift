@@ -10,7 +10,7 @@ public class Cpu {
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
     var csrBank: CsrBank = CsrBank()
-    let mmu: Mmu = Mmu()
+    var mmu: Mmu = Mmu()
 
     var mode: PriviligedMode = .machine
     var memory: Memory
