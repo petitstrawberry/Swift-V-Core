@@ -96,17 +96,23 @@ public class Cpu {
         memory.write32(addr, data)
     }
 
+    func fetch(addr: UInt32) throws -> UInt32 {
+        let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .instruction)
+        return memory.read32(addr)
+    }
+
     public func run() {
         var halt = false
 
         while (!halt) {
-            // Fetch
-            let inst: UInt32 = try! readMem32(pc)
-
-            // Decode
-            let opcode: Int = Int(inst & 0b111_1111)
-            print("PC: 0x\(String(pc, radix: 16)) inst: 0b\(String(inst, radix: 2)) Opcode: 0b\(String(opcode, radix: 2))")
             do {
+                // Fetch
+                let inst: UInt32 = try fetch(addr: pc)
+
+                // Decode
+                let opcode: Int = Int(inst & 0b111_1111)
+                print("PC: 0x\(String(pc, radix: 16)) inst: 0b\(String(inst, radix: 2)) Opcode: 0b\(String(opcode, radix: 2))")
+
                 // Execute
                 if let type = instructionTable.typeTable[Int(opcode)] {
                     switch type {
