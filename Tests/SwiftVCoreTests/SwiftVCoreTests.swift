@@ -79,7 +79,7 @@ final class SwiftVCoreTests: XCTestCase {
 
         XCTAssertEqual(paddr, vaddr)
 
-        let satp = cpu.getRawCsr(CsrBank.RegAddr.satp)
+        let satp: Satp = cpu.getRawCsr(CsrBank.RegAddr.satp)
         try satp.write(cpu: cpu, value: 0x80000000)
 
         // TLB match
@@ -89,5 +89,74 @@ final class SwiftVCoreTests: XCTestCase {
         let vaddr2 = UInt32(0x1000_01ff)
         let paddr2 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr2, write: false)
         XCTAssertEqual(paddr2, UInt32(0x8000_01ff))
+
+        // TLB miss
+        // Table walk
+        let vaddr3 = UInt32(
+            0x01 << 22 |
+            0x00 << 12 |
+            0x2ff
+        )
+        // set root page table address
+        satp.write(cpu: cpu, field: .asid, value: 0x01)
+        satp.write(cpu: cpu, field: .ppn, value: 0x1000)
+        // create page table
+        let pte0 = Mmu.Sv32.Pte(
+            valid: true,
+            read: false,
+            write: false,
+            execute: false,
+            user: true,
+            global: false,
+            accessed: false,
+            dirty: false,
+            asid: 0x01,
+            ppn: [0x300, 0x01]
+        ).getRawValue()
+        cpu.writeRawMem32(0x0100_0000 + 0x0004, data: pte0)
+
+        let pte1 = Mmu.Sv32.Pte(
+            valid: true,
+            read: true,
+            write: true,
+            execute: false,
+            user: true,
+            global: false,
+            accessed: false,
+            dirty: false,
+            asid: 0x01,
+            ppn: [0x3ff, 0x00]
+        ).getRawValue()
+        cpu.writeRawMem32(0x00070_0000 + 0x0000, data: pte1)
+
+        let paddr3 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, write: false)
+        print("0x\(String(vaddr3, radix: 16)) -> 0x\(String(paddr3, radix: 16))")
+        XCTAssertEqual(paddr3, UInt32(0x003f_f2ff))
+
+        // TLB miss
+        // Table walk
+        // Direct mapping & short table walk
+        let vaddr4 = UInt32(
+            0x00 << 22 |
+            0x10 << 12 |
+            0x2ff
+        )
+        let pte2 = Mmu.Sv32.Pte(
+            valid: true,
+            read: true,
+            write: true,
+            execute: false,
+            user: true,
+            global: false,
+            accessed: false,
+            dirty: false,
+            asid: 0x01,
+            ppn: [0x00, 0x00]
+        ).getRawValue()
+        cpu.writeRawMem32(0x0100_0000 + 0x0000, data: pte2)
+        let paddr4 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr4, write: false)
+        print("0x\(String(vaddr4, radix: 16)) -> 0x\(String(paddr4, radix: 16))")
+        XCTAssertEqual(paddr4, UInt32(0x0001_02ff))
+
     }
 }
