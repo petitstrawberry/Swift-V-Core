@@ -5,6 +5,12 @@ struct Mmu {
         case sv32 = 0b1
     }
 
+    enum AccessType {
+        case instruction
+        case load
+        case store
+    }
+
     func getAddressingMode(cpu: Cpu) -> AddressingMode {
         return try! cpu.readRawCsr(CsrBank.RegAddr.satp) & 0x8000_0000 == 0 ? .bare : .sv32
     }
@@ -14,7 +20,7 @@ struct Mmu {
         static var pageSize: Int { get }
         static var pteSize: Int { get }
 
-        func translate(cpu: Cpu, vaddr: UInt32) throws -> UInt32
+        func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt32
     }
 
     let bareVaddrTranslator: Bare
@@ -25,7 +31,7 @@ struct Mmu {
         self.sv32VaddrTranslator = Sv32()
     }
 
-    func translate(cpu: Cpu, vaddr: UInt32, write: Bool) throws -> UInt32 {
+    func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt32 {
         let addressingMode = getAddressingMode(cpu: cpu)
         let translator: any VaddrTranslator = switch addressingMode {
         case .bare:
@@ -42,7 +48,7 @@ struct Mmu {
             }
         }
 
-        return try translator.translate(cpu: cpu, vaddr: vaddr)
+        return try translator.translate(cpu: cpu, vaddr: vaddr, accessType: accessType)
     }
 
     var tlb = Tlb()
