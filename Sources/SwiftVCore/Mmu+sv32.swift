@@ -35,14 +35,14 @@ extension Mmu {
 
             var pagetableAddr = satp.read(cpu: cpu, field: .ppn) * UInt32(Mmu.Sv32.pageSize)
 
-            var pte: Pte = Pte(pte: 0)
+            var pte: Pte = Sv32.Pte(rawValue: 0)
             var pteAddr: UInt32 = 0
 
             for i in (0...1).reversed() {
                 checkedLevel = i
                 pteAddr = pagetableAddr + vpn[i] * UInt32(Mmu.Sv32.pteSize)
                 // print("paddr = 0x\(String(paddr, radix: 16))")
-                pte = Pte(pte: cpu.readRawMem32(pteAddr))
+                pte = Sv32.Pte(rawValue: cpu.readRawMem32(pteAddr))
 
                 if !pte.valid || (!pte.read && pte.write) {
                     try throwPageFault(accessType: accessType, vaddr: vaddr)
@@ -52,11 +52,11 @@ extension Mmu {
                     break
                 }
 
-                pagetableAddr = (pte.ppn[1] << 10 + pte.ppn[0]) * UInt32(Mmu.Sv32.pageSize)
+                pagetableAddr = (pte.ppnSlice[1] << 10 + pte.ppnSlice[0]) * UInt32(Mmu.Sv32.pageSize)
             }
 
             if checkedLevel > 0 {
-                for i in 0..<checkedLevel where pte.ppn[i] != 0 {
+                for i in 0..<checkedLevel where pte.ppnSlice[i] != 0 {
                     try throwPageFault(accessType: accessType, vaddr: vaddr)
                 }
             }
@@ -66,7 +66,7 @@ extension Mmu {
                 if accessType == .store {
                     pte.dirty = true
                 }
-                cpu.writeRawMem32(pteAddr, data: pte.getRawValue())
+                cpu.writeRawMem32(pteAddr, data: pte.rawValue)
             }
 
             var ppn: [UInt32] = [0, 0]
@@ -75,7 +75,7 @@ extension Mmu {
                 ppn[i] = vpn[i]
             }
             for i in checkedLevel..<2 {
-                ppn[i] = pte.ppn[i]
+                ppn[i] = pte.ppnSlice[i]
             }
 
             return ppn[1] << 22 + ppn[0] << 12 + offset
@@ -84,31 +84,36 @@ extension Mmu {
 }
 
 extension Mmu.Sv32 {
-    struct Pte {
-        var valid: Bool
-        var read: Bool
-        var write: Bool
-        var execute: Bool
-        var user: Bool
-        var global: Bool
-        var accessed: Bool
-        var dirty: Bool
-        var ppn: [UInt32] = [
-            0,
-            0
-        ]
+    struct Pte: Mmu.Pte {
+        var rawValue: UInt32
 
-        init(pte: UInt32) {
-            valid = pte & 0x1 != 0
-            read = pte & 0x2 != 0
-            write = pte & 0x4 != 0
-            execute = pte & 0x8 != 0
-            user = pte & 0x10 != 0
-            global = pte & 0x20 != 0
-            accessed = pte & 0x40 != 0
-            dirty = pte & 0x80 != 0
-            ppn[0] = (pte >> 10) & 0x3ff
-            ppn[1] = (pte >> 20) & 0x3ff
+        var ppn: UInt32 {
+            get {
+                return (rawValue >> 10) & 0xfffff
+            }
+
+            set {
+                rawValue = (rawValue & (~0xfffff << 10)) | (newValue & (0xfffff << 10))
+            }
+        }
+
+        var ppnSlice: [UInt32] {
+            get {
+                return [
+                    (rawValue >> 10) & 0x3ff,
+                    (rawValue >> 20) & 0x3ff
+                ]
+            }
+
+            set {
+                rawValue = (rawValue & (~0x3ff << 10)) | (newValue[0] & (0x3ff << 10))
+                rawValue = (rawValue & (~0x3ff << 20)) | ((newValue[1] & 0x3ff << 20))
+            }
+        }
+
+        init(rawValue: UInt32) {
+            print("PTE: 0x\(String(rawValue, radix: 16))")
+            self.rawValue = rawValue
         }
 
         // for testing
@@ -121,36 +126,22 @@ extension Mmu.Sv32 {
             global: Bool,
             accessed: Bool,
             dirty: Bool,
-            asid: UInt32,
             ppn: [UInt32]
         ) {
-            self.valid = valid
-            self.read = read
-            self.write = write
-            self.execute = execute
-            self.user = user
-            self.global = global
-            self.accessed = accessed
-            self.dirty = dirty
-            self.ppn[0] = ppn[0] & 0x3ff
-            self.ppn[1] = ppn[1] & 0x3ff
+            rawValue = 0
+            rawValue |= valid ? 0x1 : 0
+            rawValue |= read ? 0x2 : 0
+            rawValue |= write ? 0x4 : 0
+            rawValue |= execute ? 0x8 : 0
+            rawValue |= user ? 0x10 : 0
+            rawValue |= global ? 0x20 : 0
+            rawValue |= accessed ? 0x40 : 0
+            rawValue |= dirty ? 0x80 : 0
+            rawValue |= (ppn[0] & 0x3ff) << 10
+            rawValue |= (ppn[1] & 0x3ff) << 20
+
+            print("PTE: 0x\(String(rawValue, radix: 16))")
         }
 
-        func getRawValue() -> UInt32 {
-            var pte: UInt32 = 0
-
-            pte |= valid ? 0x1 : 0
-            pte |= read ? 0x2 : 0
-            pte |= write ? 0x4 : 0
-            pte |= execute ? 0x8 : 0
-            pte |= user ? 0x10 : 0
-            pte |= global ? 0x20 : 0
-            pte |= accessed ? 0x40 : 0
-            pte |= dirty ? 0x80 : 0
-            pte |= ppn[0] << 10
-            pte |= ppn[1] << 20
-
-            return pte
-        }
     }
 }

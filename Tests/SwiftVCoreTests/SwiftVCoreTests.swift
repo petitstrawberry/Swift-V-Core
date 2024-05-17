@@ -76,7 +76,7 @@ final class SwiftVCoreTests: XCTestCase {
 
         let vaddr = UInt32(0x00000000)
         let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, accessType: .load)
-
+        print("0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
         XCTAssertEqual(paddr, vaddr)
 
         let satp: Satp = cpu.getRawCsr(CsrBank.RegAddr.satp)
@@ -88,6 +88,7 @@ final class SwiftVCoreTests: XCTestCase {
 
         let vaddr2 = UInt32(0x1000_01ff)
         let paddr2 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr2, accessType: .load)
+        print("0x\(String(vaddr2, radix: 16)) -> 0x\(String(paddr2, radix: 16))")
         XCTAssertEqual(paddr2, UInt32(0x8000_01ff))
 
         // TLB miss
@@ -110,9 +111,8 @@ final class SwiftVCoreTests: XCTestCase {
             global: false,
             accessed: false,
             dirty: false,
-            asid: 0x01,
             ppn: [0x300, 0x01]
-        ).getRawValue()
+        ).rawValue
         cpu.writeRawMem32(0x0100_0000 + 0x0004, data: pte0)
 
         let pte1 = Mmu.Sv32.Pte(
@@ -124,9 +124,8 @@ final class SwiftVCoreTests: XCTestCase {
             global: false,
             accessed: false,
             dirty: false,
-            asid: 0x01,
             ppn: [0x3ff, 0x00]
-        ).getRawValue()
+        ).rawValue
         cpu.writeRawMem32(0x00070_0000 + 0x0000, data: pte1)
 
         let paddr3 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, accessType: .load)
@@ -150,9 +149,8 @@ final class SwiftVCoreTests: XCTestCase {
             global: false,
             accessed: false,
             dirty: false,
-            asid: 0x01,
             ppn: [0x00, 0x00]
-        ).getRawValue()
+        ).rawValue
         cpu.writeRawMem32(0x0100_0000 + 0x0000, data: pte2)
         let paddr4 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr4, accessType: .load)
         print("0x\(String(vaddr4, radix: 16)) -> 0x\(String(paddr4, radix: 16))")
