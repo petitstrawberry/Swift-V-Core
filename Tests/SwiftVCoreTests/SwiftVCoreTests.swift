@@ -76,20 +76,11 @@ final class SwiftVCoreTests: XCTestCase {
 
         let vaddr = UInt32(0x00000000)
         let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, accessType: .load)
-        print("0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
+        print("Bare: 0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
         XCTAssertEqual(paddr, vaddr)
 
         let satp: Satp = cpu.getRawCsr(CsrBank.RegAddr.satp)
-        try satp.write(cpu: cpu, value: 0x80000000)
-
-        // TLB match
-        cpu.mmu.tlb.add(entry: .init(valid: true, read: true, write: true, execute: true,
-            user: true, global: true, accessed: false, dirty: false, asid: 0, ppn: 0x80000, vpn: 0x10000))
-
-        let vaddr2 = UInt32(0x1000_01ff)
-        let paddr2 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr2, accessType: .load)
-        print("0x\(String(vaddr2, radix: 16)) -> 0x\(String(paddr2, radix: 16))")
-        XCTAssertEqual(paddr2, UInt32(0x8000_01ff))
+        try satp.write(cpu: cpu, value: 0x80000000) // set Sv32 mode
 
         // TLB miss
         // Table walk
@@ -128,9 +119,23 @@ final class SwiftVCoreTests: XCTestCase {
         ).rawValue
         cpu.writeRawMem32(0x00070_0000 + 0x0000, data: pte1)
 
+        let start3 = Date()
         let paddr3 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, accessType: .load)
-        print("0x\(String(vaddr3, radix: 16)) -> 0x\(String(paddr3, radix: 16))")
+        let elapsed3 = Date().timeIntervalSince(start3)
+        print("Sv32 walk: 0x\(String(vaddr3, radix: 16)) -> 0x\(String(paddr3, radix: 16)), elapsed: \(elapsed3)")
         XCTAssertEqual(paddr3, UInt32(0x003f_f2ff))
+
+         // TLB match
+        let tlb = cpu.mmu.tlb
+        if tlb.get(vpn: 0x400, asid: 0x00, accessType: .load) != nil {
+            let start = Date()
+            let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, accessType: .load)
+            let elapsed = Date().timeIntervalSince(start)
+            print("Sv32 tlb: 0x\(String(vaddr3, radix: 16)) -> 0x\(String(paddr, radix: 16)), elapsed: \(elapsed)")
+            XCTAssertEqual(paddr, UInt32(0x003f_f2ff))
+        } else {
+            XCTFail("TLB miss")
+        }
 
         // TLB miss
         // Table walk
@@ -153,8 +158,7 @@ final class SwiftVCoreTests: XCTestCase {
         ).rawValue
         cpu.writeRawMem32(0x0100_0000 + 0x0000, data: pte2)
         let paddr4 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr4, accessType: .load)
-        print("0x\(String(vaddr4, radix: 16)) -> 0x\(String(paddr4, radix: 16))")
+        print("Sv32 walk direct map: 0x\(String(vaddr4, radix: 16)) -> 0x\(String(paddr4, radix: 16))")
         XCTAssertEqual(paddr4, UInt32(0x0001_02ff))
-
     }
 }
