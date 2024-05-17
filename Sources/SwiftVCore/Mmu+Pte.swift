@@ -130,3 +130,15 @@ extension Mmu.Pte {
         }
     }
 }
+
+extension Mmu.Tlb {
+    struct EmptyPte: Mmu.Pte {
+        var rawValue: UInt32
+
+        var ppn: UInt32 = 0
+
+        init(rawValue: UInt32) {
+            self.rawValue = rawValue
+        }
+    }
+}

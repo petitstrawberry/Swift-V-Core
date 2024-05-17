@@ -112,7 +112,6 @@ extension Mmu.Sv32 {
         }
 
         init(rawValue: UInt32) {
-            print("PTE: 0x\(String(rawValue, radix: 16))")
             self.rawValue = rawValue
         }
 
@@ -139,8 +138,6 @@ extension Mmu.Sv32 {
             rawValue |= dirty ? 0x80 : 0
             rawValue |= (ppn[0] & 0x3ff) << 10
             rawValue |= (ppn[1] & 0x3ff) << 20
-
-            print("PTE: 0x\(String(rawValue, radix: 16))")
         }
 
     }
