@@ -22,7 +22,7 @@ public struct Mmu {
         static var pageSize: Int { get }
         static var pteSize: Int { get }
 
-        func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt32
+        func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt64
     }
 
     let sv32VaddrTranslator: Sv32
@@ -31,10 +31,10 @@ public struct Mmu {
         self.sv32VaddrTranslator = Sv32()
     }
 
-    mutating func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt32 {
+    mutating func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt64 {
         let addressingMode = getAddressingMode(cpu: cpu)
         if addressingMode == .bare {
-            return vaddr
+            return UInt64(vaddr)
         }
 
         let translator: any VaddrTranslator = switch addressingMode {
@@ -47,18 +47,18 @@ public struct Mmu {
         let satp = cpu.getRawCsr(CsrBank.RegAddr.satp) as Satp
         let asid = satp.read(cpu: cpu, field: .asid)
 
-        let vpn = vaddr >> 12
+        let vpn = UInt32((vaddr & 0xffff_ffff) >> 12)
 
         if tlbEnabled {
             if  let entry = tlb.get(vpn: vpn, asid: asid, accessType: accessType) {
-                return entry.ppn << 12 + vaddr & 0xfff
+                return UInt64(entry.ppn) << 12 + UInt64(vaddr & 0xfff)
             }
         }
 
-        let paddr = try translator.translate(cpu: cpu, vaddr: vaddr, accessType: accessType)
+        let paddr = try translator.translate(cpu: cpu, vaddr: UInt32(vaddr & 0xffff_ffff ), accessType: accessType)
 
         if tlbEnabled {
-            tlb.put(asid: asid, vpn: vpn, ppn: paddr >> 12, accessType: accessType)
+            tlb.put(asid: asid, vpn: vpn, ppn: UInt32(paddr >> 12), accessType: accessType)
         }
 
         return paddr

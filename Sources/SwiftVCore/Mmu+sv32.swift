@@ -17,11 +17,11 @@ extension Mmu {
             }
         }
 
-        func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt32 {
+        func translate(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt64 {
             return try walk(cpu: cpu, vaddr: vaddr, accessType: accessType)
         }
 
-        func walk(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt32 {
+        func walk(cpu: Cpu, vaddr: UInt32, accessType: AccessType) throws -> UInt64 {
             let satp = cpu.getRawCsr(CsrBank.RegAddr.satp) as Satp
 
             let vpn: [UInt32] = [
@@ -33,14 +33,14 @@ extension Mmu {
 
             var checkedLevel: Int = 1
 
-            var pagetableAddr = satp.read(cpu: cpu, field: .ppn) * UInt32(Mmu.Sv32.pageSize)
+            var pagetableAddr = UInt64(satp.read(cpu: cpu, field: .ppn)) * UInt64(Mmu.Sv32.pageSize)
 
             var pte: Pte = Sv32.Pte(rawValue: 0)
-            var pteAddr: UInt32 = 0
+            var pteAddr: UInt64 = 0
 
             for i in (0...1).reversed() {
                 checkedLevel = i
-                pteAddr = pagetableAddr + vpn[i] * UInt32(Mmu.Sv32.pteSize)
+                pteAddr = pagetableAddr + UInt64(vpn[i]) * UInt64(Mmu.Sv32.pteSize)
                 // print("paddr = 0x\(String(paddr, radix: 16))")
                 pte = Sv32.Pte(rawValue: cpu.readRawMem32(pteAddr))
 
@@ -52,7 +52,7 @@ extension Mmu {
                     break
                 }
 
-                pagetableAddr = (pte.ppnSlice[1] << 10 + pte.ppnSlice[0]) * UInt32(Mmu.Sv32.pageSize)
+                pagetableAddr = (UInt64(pte.ppnSlice[1]) << 10 + UInt64(pte.ppnSlice[0])) * UInt64(Mmu.Sv32.pageSize)
             }
 
             if checkedLevel > 0 {
@@ -78,7 +78,7 @@ extension Mmu {
                 ppn[i] = pte.ppnSlice[i]
             }
 
-            return ppn[1] << 22 + ppn[0] << 12 + offset
+            return UInt64(ppn[1]) << 22 + UInt64(ppn[0]) << 12 + UInt64(offset)
         }
     }
 }
@@ -146,7 +146,8 @@ extension Mmu.Sv32 {
 // For testing
 extension Mmu.Sv32 {
     // Page mapper
-    static func vmap(cpu: Cpu, vaddr: UInt32, paddr: UInt32) {
+    static func vmap(cpu: Cpu, vaddr: UInt32, paddr: UInt64) {
+        let paddr = paddr & 0xffff_ffff
         let satp = cpu.getRawCsr(CsrBank.RegAddr.satp) as Satp
 
         let vpn: [UInt32] = [
@@ -154,11 +155,11 @@ extension Mmu.Sv32 {
             (vaddr >> 22) & 0x3ff
         ]
 
-        var pagetableAddr = satp.read(cpu: cpu, field: .ppn) * UInt32(Mmu.Sv32.pageSize)
-        var pteAddr: UInt32 = 0
+        var pagetableAddr = UInt64(satp.read(cpu: cpu, field: .ppn)) * UInt64(Mmu.Sv32.pageSize)
+        var pteAddr: UInt64 = 0
 
         for i in (0...1).reversed() {
-            pteAddr = pagetableAddr + vpn[i] * UInt32(Mmu.Sv32.pteSize)
+            pteAddr = pagetableAddr + UInt64(vpn[i]) * UInt64(Mmu.Sv32.pteSize)
 
             var pte = Pte(rawValue: cpu.readRawMem32(pteAddr))
 
@@ -176,7 +177,7 @@ extension Mmu.Sv32 {
                 )
 
                 if i == 0 {
-                    pte.ppn = (paddr >> 12) & 0x3fffff
+                    pte.ppn = UInt32((paddr >> 12) & 0x3fffff)
                     pte.write = true
                     pte.read = true
                     pte.execute = true
@@ -187,7 +188,7 @@ extension Mmu.Sv32 {
                 cpu.writeRawMem32(pteAddr, data: pte.rawValue)
             }
 
-            pagetableAddr = pte.ppn * UInt32(Mmu.Sv32.pageSize)
+            pagetableAddr = UInt64(pte.ppn) * UInt64(Mmu.Sv32.pageSize)
             // if i == 0 {
             // }
         }
