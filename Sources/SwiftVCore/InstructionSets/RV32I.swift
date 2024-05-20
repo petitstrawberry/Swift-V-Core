@@ -137,7 +137,7 @@ struct RV32I: InstructionSet {
             let rs1 = (inst >> 15) & 0b11111
             let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
-            let data = cpu.memory.read8(addr)
+            let data = try cpu.readMem8(addr)
             cpu.xregs.write(rd, signExtend32(val: data, bitWidth: 8))
             cpu.pc &+= 4
         },
@@ -147,7 +147,7 @@ struct RV32I: InstructionSet {
             let rs1 = (inst >> 15) & 0b11111
             let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
-            let data = cpu.memory.read16(addr)
+            let data = try cpu.readMem16(addr)
             cpu.xregs.write(rd, signExtend32(val: data, bitWidth: 16))
             cpu.pc &+= 4
         },
@@ -157,7 +157,7 @@ struct RV32I: InstructionSet {
             let rs1 = (inst >> 15) & 0b11111
             let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
-            let data = cpu.memory.read32(addr)
+            let data = try cpu.readMem32(addr)
             cpu.xregs.write(rd, data)
             cpu.pc &+= 4
         },
@@ -167,7 +167,7 @@ struct RV32I: InstructionSet {
             let rs1 = (inst >> 15) & 0b11111
             let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
-            let data = cpu.memory.read8(addr)
+            let data = try cpu.readMem8(addr)
             cpu.xregs.write(rd, UInt32(data))
             cpu.pc &+= 4
         },
@@ -177,7 +177,7 @@ struct RV32I: InstructionSet {
             let rs1 = (inst >> 15) & 0b11111
             let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
-            let data = cpu.memory.read16(addr)
+            let data = try cpu.readMem16(addr)
             cpu.xregs.write(rd, UInt32(data))
             cpu.pc &+= 4
         },
@@ -188,7 +188,7 @@ struct RV32I: InstructionSet {
             let imm = signExtend32(val: (inst >> 7 & 0b11111) | (inst >> 25 & 0b1111111) << 5, bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
             let data = UInt8(cpu.xregs.read(rs2) & 0xFF)
-            cpu.memory.write8(addr, data)
+            try cpu.writeMem8(addr, data: data)
             cpu.pc &+= 4
         },
         // SH
@@ -198,7 +198,7 @@ struct RV32I: InstructionSet {
             let imm = signExtend32(val: (inst >> 7 & 0b11111) | (inst >> 25 & 0b1111111) << 5, bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
             let data = UInt16(cpu.xregs.read(rs2) & 0xFFFF)
-            cpu.memory.write16(addr, data)
+            try cpu.writeMem16(addr, data: data)
             cpu.pc &+= 4
         },
         // SW
@@ -208,7 +208,7 @@ struct RV32I: InstructionSet {
             let imm = signExtend32(val: (inst >> 7 & 0b11111) | (inst >> 25 & 0b1111111) << 5, bitWidth: 12)
             let addr = cpu.xregs.read(rs1) &+ imm
             let data = cpu.xregs.read(rs2)
-            cpu.memory.write32(addr, data)
+            try cpu.writeMem32(addr, data: data)
             cpu.pc &+= 4
         },
         // ADDI

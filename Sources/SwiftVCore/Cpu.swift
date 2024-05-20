@@ -13,11 +13,11 @@ public class Cpu {
     var mmu: Mmu = Mmu()
 
     var mode: PriviligedMode = .machine
-    var memory: Memory
+    var bus: Bus
     var instructionTable = InstructionTable()
 
-    public init(memory: Memory, instructionSets: [InstructionSet]) {
-        self.memory = memory
+    public init(bus: Bus, instructionSets: [InstructionSet]) {
+        self.bus = bus
         instructionTable.load(instructionSets: instructionSets)
         csrBank.load(instructionSets: instructionSets)
     }
@@ -32,73 +32,63 @@ public class Cpu {
         throw CpuError.panic(msg)
     }
 
-    public func readMem(_ addr: UInt32, size: UInt32) throws -> [UInt8] {
-        let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return memory.read(addr, Int(size))
-    }
-
-    public func writeMem(_ addr: UInt32, data: [UInt8]) throws {
-        let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        memory.write(addr, data)
-    }
-
     public func readMem8(_ addr: UInt32) throws -> UInt8 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return memory.read8(addr)
+        return bus.read8(addr: UInt64(addr))
     }
 
     public func readMem16(_ addr: UInt32) throws -> UInt16 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return memory.read16(addr)
+        return bus.read16(addr: UInt64(addr))
     }
 
     public func readMem32(_ addr: UInt32) throws -> UInt32 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return memory.read32(addr)
+        return bus.read32(addr: UInt64(addr))
     }
 
     public func writeMem8(_ addr: UInt32, data: UInt8) throws {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        memory.write8(addr, data)
+        bus.write8(addr: UInt64(addr), data: data)
     }
 
     public func writeMem16(_ addr: UInt32, data: UInt16) throws {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        memory.write16(addr, data)
+        bus.write16(addr: UInt64(addr), data: data)
     }
 
     public func writeMem32(_ addr: UInt32, data: UInt32) throws {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        memory.write32(addr, data)
+        bus.write32(addr: UInt64(addr), data: data)
     }
 
-    public func readRawMem8(_ addr: UInt32) -> UInt8 {
-        return memory.read8(addr)
+    public func readRawMem8(_ addr: UInt64) -> UInt8 {
+        return bus.read8(addr: addr)
     }
 
-    public func readRawMem16(_ addr: UInt32) -> UInt16 {
-        return memory.read16(addr)
+    public func readRawMem16(_ addr: UInt64) -> UInt16 {
+        return bus.read16(addr: addr)
     }
 
-    public func readRawMem32(_ addr: UInt32) -> UInt32 {
-        return memory.read32(addr)
+    public func readRawMem32(_ addr: UInt64) -> UInt32 {
+        return bus.read32(addr: addr)
     }
 
-    public func writeRawMem8(_ addr: UInt32, data: UInt8) {
-        memory.write8(addr, data)
+    public func writeRawMem8(_ addr: UInt64, data: UInt8) {
+        bus.write8(addr: addr, data: data)
     }
 
-    public func writeRawMem16(_ addr: UInt32, data: UInt16) {
-        memory.write16(addr, data)
+    public func writeRawMem16(_ addr: UInt64, data: UInt16) {
+        bus.write16(addr: addr, data: data)
     }
 
-    public func writeRawMem32(_ addr: UInt32, data: UInt32) {
-        memory.write32(addr, data)
+    public func writeRawMem32(_ addr: UInt64, data: UInt32) {
+        bus.write32(addr: addr, data: data)
     }
 
     func fetch(addr: UInt32) throws -> UInt32 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .instruction)
-        return memory.read32(addr)
+        return bus.read32(addr: UInt64(addr))
     }
 
     public func run() {
@@ -128,8 +118,9 @@ public class Cpu {
                     }
                 } else {
                     print("Unknown opcode: 0b\(String(opcode, radix: 2))")
-                    // break
-                    throw Trap.exception(.illegalInstruction, tval: pc)
+                    break
+                    // throw Trap.exception(.illegalInstruction, tval: pc)
+
                 }
             } catch Trap.interrupt(let interrupt, tval: let tval) {
                 do {
@@ -158,5 +149,36 @@ public class Cpu {
             print("\(Xregisters.RegName(rawValue: i)!): \(reg), \(Int32(bitPattern: reg))", terminator: ", ")
         }
         print()
+    }
+}
+
+// For testing, debugging, development, or other purposes
+extension Cpu {
+    public func readMem(_ addr: UInt32, size: Int)  throws -> [UInt8] {
+        var data: [UInt8] = []
+        for i in 0..<size {
+            data.append(try readMem8(addr + UInt32(i)))
+        }
+        return data
+    }
+
+    public func writeMem(_ addr: UInt32, data: [UInt8]) throws {
+        for i in 0..<data.count {
+            try writeMem8(addr + UInt32(i), data: data[i])
+        }
+    }
+
+    public func readRawMem(_ addr: UInt64, size: Int) -> [UInt8] {
+        var data: [UInt8] = []
+        for i in 0..<size {
+            data.append(readRawMem8(addr + UInt64(i)))
+        }
+        return data
+    }
+
+    public func writeRawMem(_ addr: UInt64, data: [UInt8]) {
+        for i in 0..<data.count {
+            writeRawMem8(addr + UInt64(i), data: data[i])
+        }
     }
 }

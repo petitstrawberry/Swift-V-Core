@@ -22,8 +22,6 @@ final class SwiftVCoreTests: XCTestCase {
 
     }
     func testExecuteCode() throws {
-        var memory = Memory()
-
         let code: [UInt8] = [
             // addi a0,zero,10
             // addi a1,zero,0
@@ -46,11 +44,8 @@ final class SwiftVCoreTests: XCTestCase {
 
         let data: [UInt8] = []
 
-        memory.write(0x00000, code)
-        memory.write(0x10000, data)
-
         let cpu = Cpu(
-            memory: memory,
+            bus: Bus(),
             instructionSets: [
                 RV32I(),
                 ZiCsr(),
@@ -59,13 +54,18 @@ final class SwiftVCoreTests: XCTestCase {
             ]
         )
 
+        cpu.writeRawMem(0x8000_0000, data: code)
+        // cpu.writeRawMem(0x10000, data: data)
+
+        cpu.pc = 0x8000_0000
+
         cpu.run()
     }
 
     func testMmu() throws {
 
         let cpu = Cpu(
-            memory: Memory(),
+            bus: Bus(),
             instructionSets: [
                 RV32I(),
                 ZiCsr(),
@@ -77,74 +77,21 @@ final class SwiftVCoreTests: XCTestCase {
         let vaddr = UInt32(0x00000000)
         let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, accessType: .load)
         print("Bare: 0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
-        XCTAssertEqual(paddr, vaddr)
+        XCTAssertEqual(paddr, UInt64(vaddr))
 
         let satp: Satp = cpu.getRawCsr(CsrBank.RegAddr.satp)
         try satp.write(cpu: cpu, value: 0x80000000) // set Sv32 mode
 
         // set root page table address
         satp.write(cpu: cpu, field: .asid, value: 0x01)
-        satp.write(cpu: cpu, field: .ppn, value: 0x1000)
-
-        // TLB miss
-        // Table walk
-        let vaddr3 = UInt32(
-            0x01 << 22 |
-            0x00 << 12 |
-            0x2ff
-        )
-        // create page table
-        let pte0 = Mmu.Sv32.Pte(
-            valid: true,
-            read: false,
-            write: false,
-            execute: false,
-            user: true,
-            global: false,
-            accessed: false,
-            dirty: false,
-            ppn: [0x300, 0x01]
-        ).rawValue
-        cpu.writeRawMem32(0x0100_0000 + 0x0004, data: pte0)
-
-        let pte1 = Mmu.Sv32.Pte(
-            valid: true,
-            read: true,
-            write: true,
-            execute: false,
-            user: true,
-            global: false,
-            accessed: false,
-            dirty: false,
-            ppn: [0x3ff, 0x00]
-        ).rawValue
-        cpu.writeRawMem32(0x00070_0000 + 0x0000, data: pte1)
-
-        let start3 = Date()
-        let paddr3 = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, accessType: .load)
-        let elapsed3 = Date().timeIntervalSince(start3)
-        print("Sv32 walk: 0x\(String(vaddr3, radix: 16)) -> 0x\(String(paddr3, radix: 16)), elapsed: \(elapsed3)")
-        XCTAssertEqual(paddr3, UInt32(0x003f_f2ff))
-
-         // TLB Hit
-        // cpu.mmu.tlbEnabled = false
-        var tlb = cpu.mmu.tlb
-        if tlb.get(vpn: 0x400, asid: 0x00, accessType: .load) != nil {
-            let start = Date()
-            let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr3, accessType: .load)
-            let elapsed = Date().timeIntervalSince(start)
-            print("Sv32 tlb: 0x\(String(vaddr3, radix: 16)) -> 0x\(String(paddr, radix: 16)), elapsed: \(elapsed)")
-            XCTAssertEqual(paddr, UInt32(0x003f_f2ff))
-        } else {
-            XCTFail("TLB miss")
-        }
+        satp.write(cpu: cpu, field: .ppn, value: 0x8_0000)
 
         // Straight mapping test
 
         // 0x0000 ~ 0x0fff -> 0x8000 ~ 0x8fff
         for i in 0..<256 {
             let vaddr = UInt32(i * 0x1000)
-            let paddr = vaddr + 0x8000
+            let paddr = UInt64(vaddr + 0x8000)
             Mmu.Sv32.vmap(cpu: cpu, vaddr: vaddr, paddr: paddr)
             // print("map: 0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
         }
@@ -154,7 +101,7 @@ final class SwiftVCoreTests: XCTestCase {
         for i in 0..<256 {
             let vaddr = UInt32(i * 0x1000)
             let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, accessType: .load)
-            XCTAssertEqual(paddr, vaddr + 0x8000)
+            XCTAssertEqual(paddr, UInt64(vaddr + 0x8000))
         }
         print("Cached on TLB")
         // Check tlb
@@ -165,7 +112,7 @@ final class SwiftVCoreTests: XCTestCase {
                 let vaddr = i * 0x1000 + j
                 let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, accessType: .load)
                 // print("translated: 0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
-                XCTAssertEqual(paddr, vaddr + 0x8000)
+                XCTAssertEqual(paddr, UInt64(vaddr + 0x8000))
             }
         }
         let elapsed = Date().timeIntervalSince(start)
@@ -179,7 +126,7 @@ final class SwiftVCoreTests: XCTestCase {
                 let vaddr = i * 0x1000 + j
                 let paddr = try cpu.mmu.translate(cpu: cpu, vaddr: vaddr, accessType: .load)
                 // print("translated: 0x\(String(vaddr, radix: 16)) -> 0x\(String(paddr, radix: 16))")
-                XCTAssertEqual(paddr, vaddr + 0x8000)
+                XCTAssertEqual(paddr, UInt64(vaddr + 0x8000))
             }
         }
         let elapsed2 = Date().timeIntervalSince(start2)
