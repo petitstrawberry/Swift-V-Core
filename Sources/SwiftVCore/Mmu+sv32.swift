@@ -182,7 +182,7 @@ extension Mmu.Sv32 {
                     pte.read = true
                     pte.execute = true
                 } else {
-                    pte.ppn = vpn[1]
+                    pte.ppn = vpn[1] + 0x80001
                 }
 
                 cpu.writeRawMem32(pteAddr, data: pte.rawValue)
