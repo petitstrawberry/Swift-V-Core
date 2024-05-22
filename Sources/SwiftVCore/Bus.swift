@@ -6,7 +6,7 @@ public class Bus {
         devices.append(device)
     }
 
-    func read8(addr: UInt64) -> UInt8 {
+    func read8(addr: UInt64) throws -> UInt8 {
         switch addr {
         case dram.startAddr...dram.endAddr:
             return dram.read8(addr: addr)
@@ -17,11 +17,11 @@ public class Bus {
                     return device.read8(addr: addr)
                 }
             }
-            fatalError("Bus read8: Address 0x\(String(addr, radix: 16)) out of range")
+            throw Trap.exception(.loadAccessFault)
         }
     }
 
-    func write8(addr: UInt64, data: UInt8) {
+    func write8(addr: UInt64, data: UInt8) throws {
         switch addr {
         case dram.startAddr...dram.endAddr:
             dram.write8(addr: addr, data: data)
@@ -33,11 +33,11 @@ public class Bus {
                     return
                 }
             }
-            fatalError("Bus write8: Address 0x\(String(addr, radix: 16)) out of range")
+            throw Trap.exception(.storeAMOAccessFault)
         }
     }
 
-    func read16(addr: UInt64) -> UInt16 {
+    func read16(addr: UInt64) throws -> UInt16 {
         switch addr {
         case dram.startAddr...dram.endAddr:
             return dram.read16(addr: addr)
@@ -48,11 +48,11 @@ public class Bus {
                     return device.read16(addr: addr)
                 }
             }
-            fatalError("Bus read16: Address 0x\(String(addr, radix: 16)) out of range")
+            throw Trap.exception(.loadAccessFault)
         }
     }
 
-    func write16(addr: UInt64, data: UInt16) {
+    func write16(addr: UInt64, data: UInt16) throws {
         switch addr {
         case dram.startAddr...dram.endAddr:
             dram.write16(addr: addr, data: data)
@@ -64,11 +64,11 @@ public class Bus {
                     return
                 }
             }
-            fatalError("Bus write16: Address 0x\(String(addr, radix: 16)) out of range")
+            throw Trap.exception(.storeAMOAccessFault)
         }
     }
 
-    func read32(addr: UInt64) -> UInt32 {
+    func read32(addr: UInt64) throws -> UInt32 {
         switch addr {
         case dram.startAddr...dram.endAddr:
             return dram.read32(addr: addr)
@@ -79,11 +79,11 @@ public class Bus {
                     return device.read32(addr: addr)
                 }
             }
-            fatalError("Bus read32: Address 0x\(String(addr, radix: 16)) out of range")
+            throw Trap.exception(.loadAccessFault)
         }
     }
 
-    func write32(addr: UInt64, data: UInt32) {
+    func write32(addr: UInt64, data: UInt32) throws {
         switch addr {
         case dram.startAddr...dram.endAddr:
             dram.write32(addr: addr, data: data)
@@ -95,7 +95,7 @@ public class Bus {
                     return
                 }
             }
-            fatalError("Bus write32: Address 0x\(String(addr, radix: 16)) out of range")
+            throw Trap.exception(.storeAMOAccessFault)
         }
     }
 }
