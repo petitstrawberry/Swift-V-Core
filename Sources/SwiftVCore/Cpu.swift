@@ -34,61 +34,61 @@ public class Cpu {
 
     public func readMem8(_ addr: UInt32) throws -> UInt8 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return bus.read8(addr: UInt64(addr))
+        return try bus.read8(addr: UInt64(addr))
     }
 
     public func readMem16(_ addr: UInt32) throws -> UInt16 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return bus.read16(addr: UInt64(addr))
+        return try bus.read16(addr: UInt64(addr))
     }
 
     public func readMem32(_ addr: UInt32) throws -> UInt32 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .load)
-        return bus.read32(addr: UInt64(addr))
+        return try bus.read32(addr: UInt64(addr))
     }
 
     public func writeMem8(_ addr: UInt32, data: UInt8) throws {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        bus.write8(addr: UInt64(addr), data: data)
+        try bus.write8(addr: UInt64(addr), data: data)
     }
 
     public func writeMem16(_ addr: UInt32, data: UInt16) throws {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        bus.write16(addr: UInt64(addr), data: data)
+        try bus.write16(addr: UInt64(addr), data: data)
     }
 
     public func writeMem32(_ addr: UInt32, data: UInt32) throws {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .store)
-        bus.write32(addr: UInt64(addr), data: data)
+        try bus.write32(addr: UInt64(addr), data: data)
     }
 
-    public func readRawMem8(_ addr: UInt64) -> UInt8 {
-        return bus.read8(addr: addr)
+    public func readRawMem8(_ addr: UInt64) throws -> UInt8 {
+        return try bus.read8(addr: addr)
     }
 
-    public func readRawMem16(_ addr: UInt64) -> UInt16 {
-        return bus.read16(addr: addr)
+    public func readRawMem16(_ addr: UInt64) throws -> UInt16 {
+        return try bus.read16(addr: addr)
     }
 
-    public func readRawMem32(_ addr: UInt64) -> UInt32 {
-        return bus.read32(addr: addr)
+    public func readRawMem32(_ addr: UInt64) throws -> UInt32 {
+        return try bus.read32(addr: addr)
     }
 
-    public func writeRawMem8(_ addr: UInt64, data: UInt8) {
-        bus.write8(addr: addr, data: data)
+    public func writeRawMem8(_ addr: UInt64, data: UInt8) throws {
+        try bus.write8(addr: addr, data: data)
     }
 
-    public func writeRawMem16(_ addr: UInt64, data: UInt16) {
-        bus.write16(addr: addr, data: data)
+    public func writeRawMem16(_ addr: UInt64, data: UInt16) throws {
+        try bus.write16(addr: addr, data: data)
     }
 
-    public func writeRawMem32(_ addr: UInt64, data: UInt32) {
-        bus.write32(addr: addr, data: data)
+    public func writeRawMem32(_ addr: UInt64, data: UInt32) throws {
+        try bus.write32(addr: addr, data: data)
     }
 
     func fetch(addr: UInt32) throws -> UInt32 {
         let addr = try mmu.translate(cpu: self, vaddr: addr, accessType: .instruction)
-        return bus.read32(addr: UInt64(addr))
+        return try bus.read32(addr: UInt64(addr))
     }
 
     public func run() {
@@ -171,14 +171,14 @@ extension Cpu {
     public func readRawMem(_ addr: UInt64, size: Int) -> [UInt8] {
         var data: [UInt8] = []
         for i in 0..<size {
-            data.append(readRawMem8(addr + UInt64(i)))
+            data.append(try! readRawMem8(addr + UInt64(i)))
         }
         return data
     }
 
     public func writeRawMem(_ addr: UInt64, data: [UInt8]) {
         for i in 0..<data.count {
-            writeRawMem8(addr + UInt64(i), data: data[i])
+            try! writeRawMem8(addr + UInt64(i), data: data[i])
         }
     }
 }

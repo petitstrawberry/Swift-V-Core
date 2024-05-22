@@ -42,7 +42,7 @@ extension Mmu {
                 checkedLevel = i
                 pteAddr = pagetableAddr + UInt64(vpn[i]) * UInt64(Mmu.Sv32.pteSize)
                 // print("paddr = 0x\(String(paddr, radix: 16))")
-                pte = Sv32.Pte(rawValue: cpu.readRawMem32(pteAddr))
+                pte = Sv32.Pte(rawValue: try cpu.readRawMem32(pteAddr))
 
                 if !pte.valid || (!pte.read && pte.write) {
                     try throwPageFault(accessType: accessType, vaddr: vaddr)
@@ -66,7 +66,7 @@ extension Mmu {
                 if accessType == .store {
                     pte.dirty = true
                 }
-                cpu.writeRawMem32(pteAddr, data: pte.rawValue)
+                try cpu.writeRawMem32(pteAddr, data: pte.rawValue)
             }
 
             var ppn: [UInt32] = [0, 0]
@@ -161,7 +161,7 @@ extension Mmu.Sv32 {
         for i in (0...1).reversed() {
             pteAddr = pagetableAddr + UInt64(vpn[i]) * UInt64(Mmu.Sv32.pteSize)
 
-            var pte = Pte(rawValue: cpu.readRawMem32(pteAddr))
+            var pte = Pte(rawValue: try! cpu.readRawMem32(pteAddr))
 
             if !pte.valid {
                 pte = Mmu.Sv32.Pte(
@@ -185,7 +185,7 @@ extension Mmu.Sv32 {
                     pte.ppn = vpn[1] + 0x80001
                 }
 
-                cpu.writeRawMem32(pteAddr, data: pte.rawValue)
+                try! cpu.writeRawMem32(pteAddr, data: pte.rawValue)
             }
 
             pagetableAddr = UInt64(pte.ppn) * UInt64(Mmu.Sv32.pageSize)
