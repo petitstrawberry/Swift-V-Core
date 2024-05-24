@@ -6,7 +6,8 @@ public class Cpu {
         case user = 0b00
     }
 
-    var pc: UInt32 = 0
+    let hartid: UInt32
+    var pc: UInt32 = 0x1000
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
     var csrBank: CsrBank = CsrBank()
@@ -16,7 +17,8 @@ public class Cpu {
     var bus: Bus
     var instructionTable = InstructionTable()
 
-    public init(bus: Bus, instructionSets: [InstructionSet]) {
+    public init(hartid: UInt32 = 0, bus: Bus, instructionSets: [InstructionSet]) {
+        self.hartid = hartid
         self.bus = bus
         instructionTable.load(instructionSets: instructionSets)
         csrBank.load(instructionSets: instructionSets)
