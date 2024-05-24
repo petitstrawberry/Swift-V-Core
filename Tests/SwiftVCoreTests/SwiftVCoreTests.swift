@@ -55,9 +55,6 @@ final class SwiftVCoreTests: XCTestCase {
         )
 
         cpu.writeRawMem(0x8000_0000, data: code)
-        // cpu.writeRawMem(0x10000, data: data)
-
-        cpu.pc = 0x8000_0000
 
         cpu.run()
     }
