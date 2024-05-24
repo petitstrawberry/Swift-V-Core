@@ -1,6 +1,8 @@
 struct MachineLevelISA: InstructionSet {
     var instructions: [Instruction] = []
     var csrs: [Csr] = [
+        //  Information Registers
+        Mhartid(),
         // Trap Setup
         // mstatus
         Mstatus(),
