@@ -1,5 +1,6 @@
 public class Bus {
     var dram = Dram()
+    var rom = Rom()
     var devices: [Device] = []
 
     public func addDevice(_ device: Device) {
@@ -10,6 +11,8 @@ public class Bus {
         switch addr {
         case dram.startAddr...dram.endAddr:
             return dram.read8(addr: addr)
+        case rom.startAddr...rom.endAddr:
+            return rom.read8(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -25,6 +28,8 @@ public class Bus {
         switch addr {
         case dram.startAddr...dram.endAddr:
             dram.write8(addr: addr, data: data)
+        case rom.startAddr...rom.endAddr:
+            throw Trap.exception(.storeAMOAccessFault)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -41,6 +46,8 @@ public class Bus {
         switch addr {
         case dram.startAddr...dram.endAddr:
             return dram.read16(addr: addr)
+        case rom.startAddr...rom.endAddr:
+            return rom.read16(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -56,6 +63,8 @@ public class Bus {
         switch addr {
         case dram.startAddr...dram.endAddr:
             dram.write16(addr: addr, data: data)
+        case rom.startAddr...rom.endAddr:
+            throw Trap.exception(.storeAMOAccessFault)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -72,6 +81,8 @@ public class Bus {
         switch addr {
         case dram.startAddr...dram.endAddr:
             return dram.read32(addr: addr)
+        case rom.startAddr...rom.endAddr:
+            return rom.read32(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -87,6 +98,8 @@ public class Bus {
         switch addr {
         case dram.startAddr...dram.endAddr:
             dram.write32(addr: addr, data: data)
+        case rom.startAddr...rom.endAddr:
+            throw Trap.exception(.storeAMOAccessFault)
         default:
             for index in devices.indices {
                 let device = devices[index]
