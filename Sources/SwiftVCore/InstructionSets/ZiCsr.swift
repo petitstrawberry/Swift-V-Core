@@ -15,6 +15,7 @@ struct ZiCsr: InstructionSet {
                 cpu.xregs.write(rd, csrVal)
             }
             try cpu.writeCsr(csr, regVal)
+            cpu.pc &+= 4
         },
         // CSRRS
         Instruction(name: "CSRRS", type: .I, opcode: 0b1110011, funct3: 0b010, funct7: nil) { cpu, inst in
@@ -29,6 +30,7 @@ struct ZiCsr: InstructionSet {
             if writeBit > 0 {
                 try cpu.writeCsr(csr, csrVal | writeBit)
             }
+            cpu.pc &+= 4
         },
         // CSRRC
         Instruction(name: "CSRRC", type: .I, opcode: 0b1110011, funct3: 0b011, funct7: nil) { cpu, inst in
@@ -43,6 +45,7 @@ struct ZiCsr: InstructionSet {
             if writeBit > 0 {
                 try cpu.writeCsr(csr, csrVal & ~writeBit)
             }
+            cpu.pc &+= 4
         },
         // CSRRWI
         Instruction(name: "CSRRWI", type: .I, opcode: 0b1110011, funct3: 0b101, funct7: nil) { cpu, inst in
@@ -55,6 +58,7 @@ struct ZiCsr: InstructionSet {
                 cpu.xregs.write(rd, csrVal)
             }
             try cpu.writeCsr(csr, uimm)
+            cpu.pc &+= 4
         },
         // CSRRSI
         Instruction(name: "CSRRSI", type: .I, opcode: 0b1110011, funct3: 0b110, funct7: nil) { cpu, inst in
@@ -68,6 +72,7 @@ struct ZiCsr: InstructionSet {
             if uimm > 0 {
                 try cpu.writeCsr(csr, csrVal | uimm)
             }
+            cpu.pc &+= 4
         },
         // CSRRCI
         Instruction(name: "CSRRCI", type: .I, opcode: 0b1110011, funct3: 0b111, funct7: nil) { cpu, inst in
@@ -81,6 +86,7 @@ struct ZiCsr: InstructionSet {
             if uimm > 0 {
                 try cpu.writeCsr(csr, csrVal & ~uimm)
             }
+            cpu.pc &+= 4
         }
     ]
 }
