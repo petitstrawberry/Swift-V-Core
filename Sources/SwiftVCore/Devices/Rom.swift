@@ -9,6 +9,9 @@ public struct Rom: Device {
     public init(size: UInt32 = kRomSize) {
         rom = Array(repeating: UInt8(), count: Int(size))
         let resetProgram: [UInt32] = [
+            0x800002b7, // lui      t0,0x80000
+            0xf1402573, // csrr     a0,mhartid
+            0x00028067  // jr      t0 # 80000000 <_start+0x80000000>
         ]
 
         // write
