@@ -24,20 +24,20 @@ extension Cpu {
     }
 
     // Note: This function is used for cpu internal use only
-    // Get access to CSR without checking mode
+    // Get access to CSR without amy checking
     public func getRawCsr<T: Csr>(_ addr: UInt32) -> T {
         return csrBank.csrs[Int(addr)] as! T
     }
 
     // Note: This function is used for cpu internal use only
-    // Read CSR without checking mode
-    public func readRawCsr(_ addr: UInt32) throws -> UInt32 {
-        return try getRawCsr(addr).read(cpu: self)
+    // Read CSR without amy checking
+    public func readRawCsr(_ addr: UInt32) -> UInt32 {
+        return getRawCsr(addr).value
     }
 
     // Note: This function is used for cpu internal use only
-    // Write CSR without checking mode
-    public func writeRawCsr(_ addr: UInt32, _ newValue: UInt32) throws {
-        try getRawCsr(addr).write(cpu: self, value: newValue)
+    // Write CSR without any checking
+    public func writeRawCsr(_ addr: UInt32, _ newValue: UInt32)  {
+        getRawCsr(addr).value = newValue
     }
 }
