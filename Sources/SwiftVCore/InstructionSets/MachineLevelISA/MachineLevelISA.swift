@@ -1,5 +1,27 @@
 struct MachineLevelISA: InstructionSet {
-    var instructions: [Instruction] = []
+    var instructions: [Instruction] = [
+        // MRET
+        Instruction(name: "MRET", type: .R, mode: .machine,
+                        opcode: 0b1110011, funct3: 0b000, funct7: 0b0011000) { cpu, _ in
+            let mstatus = cpu.getRawCsr(CsrBank.RegAddr.mstatus) as Mstatus
+            let mepc = try cpu.readRawCsr(CsrBank.RegAddr.mepc)
+
+            // Restore mie from mstatus.mpie value
+            mstatus.write(cpu: cpu, field: .mie, value: mstatus.read(cpu: cpu, field: .mpie))
+
+            // Change mode to mstatus.mpp
+            cpu.mode = Cpu.PriviligedMode(rawValue: mstatus.read(cpu: cpu, field: .mpp))!
+
+            // Set mpie to 1
+            mstatus.write(cpu: cpu, field: .mpie, value: 1)
+
+            // Set mpp to U-mode
+            mstatus.write(cpu: cpu, field: .mpp, value: 0)
+
+            //　Set pc to mepc
+            cpu.pc = mepc
+        }
+    ]
     var csrs: [Csr] = [
         //  Information Registers
         Mhartid(),
