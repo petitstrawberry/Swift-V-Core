@@ -103,21 +103,16 @@ public class Cpu {
 
                 // Decode
                 let opcode: Int = Int(inst & 0b111_1111)
-                print("PC: 0x\(String(pc, radix: 16)) inst: 0b\(String(inst, radix: 2)) Opcode: 0b\(String(opcode, radix: 2))")
+                let funct3: Int = Int((inst >> 12) & 0b111)
+                let funct7: Int = Int(inst >> 25)
+
+                print("PC: 0x\(String(pc, radix: 16))  Opcode: 0b\(String(opcode, radix: 2)) Funct3: 0b\(String(funct3, radix: 2))  Funct7: 0b\(String(funct7, radix: 2))")
 
                 // Execute
-                if let type = instructionTable.typeTable[Int(opcode)] {
-                    switch type {
-                    case .R:
-                        let funct3 = Int((inst >> 12) & 0x07)
-                        let funct7 = Int((inst >> 25) & 0x7f)
-                        try instructionTable.rTable[opcode][funct7][funct3]?.execute(cpu: self, inst: inst)
-                    case .I, .S, .B:
-                        let funct3 = Int((inst >> 12) & 0x07)
-                        try instructionTable.isbTable[opcode][funct3]?.execute(cpu: self, inst: inst)
-                    case .U, .J:
-                        try instructionTable.ujTable[opcode]?.execute(cpu: self, inst: inst)
-                    }
+                if let instruction = instructionTable.getInstruction(
+                    opcode: UInt8(opcode), funct3: UInt8(funct3), funct7: UInt8(funct7)
+                ) {
+                    try instruction.execute(cpu: self, inst: inst)
                 } else {
                     print("Unknown opcode: 0b\(String(opcode, radix: 2))")
                     break
