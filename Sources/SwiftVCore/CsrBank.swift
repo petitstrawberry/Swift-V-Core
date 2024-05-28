@@ -13,7 +13,7 @@ public struct CsrBank {
         for instructionSet in instructionSets {
             for csr in instructionSet.csrs {
                 self.csrs[Int(csr.addr)] = csr
-                print("Loaded CSR at 0x\(String(csr.addr, radix: 16)): \(csr.name)")
+                // print("Loaded CSR at 0x\(String(csr.addr, radix: 16)): \(csr.name)")
             }
         }
     }

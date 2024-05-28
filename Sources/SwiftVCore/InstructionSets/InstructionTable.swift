@@ -50,7 +50,7 @@ public struct InstructionTable {
                     )
                 }
 
-                print("Loaded instruction: \(instruction.name)")
+                // print("Loaded instruction: \(instruction.name)")
             }
         }
     }
