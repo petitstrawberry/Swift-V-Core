@@ -11,13 +11,24 @@ let package = Package(
             name: "SwiftVCore",
             targets: ["SwiftVCore"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/petitstrawberry/ElfParser", from: "0.1.1")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "SwiftVCore"),
+            name: "SwiftVCore",
+            dependencies: [
+                .product(name: "ElfParser", package: "ElfParser"),
+            ]
+        ),
         .testTarget(
             name: "SwiftVCoreTests",
-            dependencies: ["SwiftVCore"]),
+            dependencies: ["SwiftVCore"],
+            resources: [
+                .copy("Resources")
+            ]
+        ),
     ]
 )

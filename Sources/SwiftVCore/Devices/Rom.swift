@@ -1,6 +1,6 @@
 public let kRomSize: UInt32 = 0xf000 // 60KB
 
-public struct Rom: Device {
+public class Rom: Device {
     public let startAddr: UInt64 = 0x1000
     public let endAddr: UInt64 = 0x1000 + UInt64(kRomSize) - 1
 
@@ -41,17 +41,17 @@ public struct Rom: Device {
             | UInt32(rom[intAddr + 3]) << 24 as UInt32
     }
 
-    public mutating func write8(addr: UInt64, data: UInt8) {
+    public func write8(addr: UInt64, data: UInt8) {
         rom[Int(addr - startAddr)] = data
     }
 
-    public mutating func write16(addr: UInt64, data: UInt16) {
+    public func write16(addr: UInt64, data: UInt16) {
         let intAddr = Int(addr - startAddr)
         rom[intAddr] = UInt8(data & 0xFF)
         rom[intAddr + 1] = UInt8((data >> 8) & 0xFF)
     }
 
-    public mutating func write32(addr: UInt64, data: UInt32) {
+    public func write32(addr: UInt64, data: UInt32) {
         let intAddr = Int(addr - startAddr)
         rom[intAddr] = UInt8(data & 0xFF)
         rom[intAddr + 1] = UInt8((data >> 8) & 0xFF)
