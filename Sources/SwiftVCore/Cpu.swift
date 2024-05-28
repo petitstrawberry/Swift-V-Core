@@ -93,12 +93,15 @@ public class Cpu {
         return try bus.read32(addr: UInt64(addr))
     }
 
+    var halt: Bool = false
+
     public func run() {
-        var halt = false
+        halt = false
 
         while (!halt) {
             do {
                 // Fetch
+                print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
 
                 // Decode
@@ -106,7 +109,7 @@ public class Cpu {
                 let funct3: Int = Int((inst >> 12) & 0b111)
                 let funct7: Int = Int(inst >> 25)
 
-                print("PC: 0x\(String(pc, radix: 16))  Opcode: 0b\(String(opcode, radix: 2)) Funct3: 0b\(String(funct3, radix: 2))  Funct7: 0b\(String(funct7, radix: 2))")
+                print("Opcode: 0b\(String(opcode, radix: 2)) Funct3: 0b\(String(funct3, radix: 2))  Funct7: 0b\(String(funct7, radix: 2))")
 
                 // Execute
                 if let instruction = instructionTable.getInstruction(
@@ -115,7 +118,8 @@ public class Cpu {
                     try instruction.execute(cpu: self, inst: inst)
                 } else {
                     print("Unknown opcode: 0b\(String(opcode, radix: 2))")
-                    break
+                    halt = true
+                    // break
                     // throw Trap.exception(.illegalInstruction, tval: pc)
 
                 }

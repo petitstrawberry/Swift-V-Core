@@ -374,6 +374,7 @@ struct RV32I: InstructionSet {
         // EBREAK
         Instruction(name: "EBREAK", type: .I, opcode: 0b1110011, funct3: 0b000) { cpu, inst in
             cpu.pc &+= 4
+            cpu.halt = true
         },
     ]
 }
