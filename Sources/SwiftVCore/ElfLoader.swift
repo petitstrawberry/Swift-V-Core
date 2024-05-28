@@ -13,13 +13,15 @@ public class ElfLoader {
             fatalError()
         }
 
-        let binaryData = parser.extractBinaryData(with: programHeaders)
+        let binaryData = parser.extractBinaryData(
+            with: programHeaders.filter {
+                $0.p_type == 1 // PT_LOADに限定
+            }
+        )
 
         for (address, data) in binaryData {
             let ramAddress = Int(address)
-            if ramAddress == 0 {
-                continue
-            }
+
             guard ramAddress + data.count - 1 <= ram.endAddr else {
                 print("Data exceeds RAM bounds")
                 fatalError()
