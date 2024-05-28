@@ -118,7 +118,11 @@ public class Cpu {
                     try instruction.execute(cpu: self, inst: inst)
                 } else {
                     print("Unknown opcode: 0b\(String(opcode, radix: 2))")
-                    halt = true
+                    if opcode == 0 {
+                        halt = true
+                    } else {
+                        throw Trap.exception(.illegalInstruction, tval: pc)
+                    }
                     // break
                     // throw Trap.exception(.illegalInstruction, tval: pc)
 
