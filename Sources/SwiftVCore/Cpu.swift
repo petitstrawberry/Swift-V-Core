@@ -143,13 +143,6 @@ public class Cpu {
                 halt = true
             }
         }
-        // print registers
-        for i in 0..<32 {
-            let reg = xregs.read(UInt32(i))
-            // print unsigned, signed, binary
-            print("\(Xregisters.RegName(rawValue: i)!): \(reg), \(Int32(bitPattern: reg))", terminator: ", ")
-        }
-        print()
     }
 }
 
