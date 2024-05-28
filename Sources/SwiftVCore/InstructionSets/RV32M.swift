@@ -33,7 +33,7 @@ struct RV32M: InstructionSet {
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
             let i64 = UInt64(truncatingIfNeeded: cpu.xregs.read(rs1)) * UInt64(truncatingIfNeeded: cpu.xregs.read(rs2))
-            cpu.xregs.write(rd, UInt32(truncatingIfNeeded: Int32(i64 >> 32)))
+            cpu.xregs.write(rd, UInt32(truncatingIfNeeded: (i64 >> 32) & 0xffffffff))
             cpu.pc &+= 4
         },
         // DIV
