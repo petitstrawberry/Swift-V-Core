@@ -223,8 +223,9 @@ struct RV32I: InstructionSet {
         Instruction(name: "SLTI", type: .I, opcode: 0b0010011, funct3: 0b010) { cpu, inst in
             let rd = UInt8(inst >> 7 & 0b11111)
             let rs1 = (inst >> 15) & 0b11111
-            let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
-            cpu.xregs.write(rd, cpu.xregs.read(rs1) < imm ? 1 : 0)
+            let imm = Int32(bitPattern: signExtend32(val: (inst >> 20), bitWidth: 12))
+            let signedRs1 = Int32(bitPattern: cpu.xregs.read(rs1))
+            cpu.xregs.write(rd, signedRs1 < imm ? 1 : 0)
             cpu.pc &+= 4
         },
         // SLTIU
@@ -232,7 +233,7 @@ struct RV32I: InstructionSet {
             let rd = UInt8(inst >> 7 & 0b11111)
             let rs1 = (inst >> 15) & 0b11111
             let imm = signExtend32(val: (inst >> 20), bitWidth: 12)
-            cpu.xregs.write(rd, UInt32(bitPattern: Int32(bitPattern: cpu.xregs.read(rs1)) < Int32(bitPattern: imm) ? 1 : 0))
+            cpu.xregs.write(rd, cpu.xregs.read(rs1) < imm ? 1 : 0)
             cpu.pc &+= 4
         },
         // XORI
@@ -312,7 +313,10 @@ struct RV32I: InstructionSet {
             let rd = UInt8(inst >> 7 & 0b11111)
             let rs1 = (inst >> 15) & 0b11111
             let rs2 = (inst >> 20) & 0b11111
-            cpu.xregs.write(rd, cpu.xregs.read(rs1) < cpu.xregs.read(rs2) ? 1 : 0)
+            let signedRs1 = Int32(bitPattern: cpu.xregs.read(rs1))
+            let signedRs2 = Int32(bitPattern: cpu.xregs.read(rs2))
+
+            cpu.xregs.write(rd, signedRs1 < signedRs2 ? 1 : 0)
             cpu.pc &+= 4
         },
         // SLTU
