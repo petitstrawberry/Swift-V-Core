@@ -131,26 +131,36 @@ final class SwiftVCoreTests: XCTestCase {
     }
 
     func testRiscvTests_rv32ui_p() throws {
-
-        var elfPaths = getFiles(
+        let elfPaths = getFiles(
             regex: "^rv32ui-p-(?!.*(\\.dump$|fence_i$)).*",
             directory: "Tests/SwiftVCoreTests/Resources/riscv-tests/target/share/riscv-tests/isa"
         )
 
-
         for elfPath in elfPaths {
-            // print("Executing \(elfPath)")
             execTest(elfPath: elfPath)
         }
+    }
 
+    func testRiscvTests_rv32um_p() throws {
+        let elfPaths = getFiles(
+            regex: "^rv32um-p-(?!.*(\\.dump$)).*",
+            directory: "Tests/SwiftVCoreTests/Resources/riscv-tests/target/share/riscv-tests/isa"
+        )
+
+        for elfPath in elfPaths {
+            execTest(elfPath: elfPath)
+        }
     }
 }
 
 func execTest(elfPath: String) {
+    print("Executing \(elfPath)")
+
     let cpu = Cpu(
         bus: Bus(),
         instructionSets: [
             RV32I(),
+            RV32M(),
             ZiCsr(),
             MachineLevelISA(),
             SupervisorLevelISA()
@@ -162,8 +172,10 @@ func execTest(elfPath: String) {
     cpu.run()
     let result = cpu.xregs.read(.a0)
 
-    if result != 0 {
-        print("Failed: \(elfPath) -> \(result)")
+    if result == 0 {
+        print("Passed")
+    } else {
+        print("Failed: \(result)")
     }
 
     XCTAssertEqual(result, 0)
