@@ -101,7 +101,7 @@ public class Cpu {
         while (!halt) {
             do {
                 // Fetch
-                print("PC: 0x\(String(pc, radix: 16))")
+                // print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
 
                 // Decode
@@ -109,7 +109,7 @@ public class Cpu {
                 let funct3: Int = Int((inst >> 12) & 0b111)
                 let funct7: Int = Int(inst >> 25)
 
-                print("Opcode: 0b\(String(opcode, radix: 2)) Funct3: 0b\(String(funct3, radix: 2))  Funct7: 0b\(String(funct7, radix: 2))")
+                // print("Opcode: 0b\(String(opcode, radix: 2)) Funct3: 0b\(String(funct3, radix: 2))  Funct7: 0b\(String(funct7, radix: 2))")
 
                 // Execute
                 if let instruction = instructionTable.getInstruction(
@@ -143,13 +143,6 @@ public class Cpu {
                 halt = true
             }
         }
-        // print registers
-        for i in 0..<32 {
-            let reg = xregs.read(UInt32(i))
-            // print unsigned, signed, binary
-            print("\(Xregisters.RegName(rawValue: i)!): \(reg), \(Int32(bitPattern: reg))", terminator: ", ")
-        }
-        print()
     }
 }
 

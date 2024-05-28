@@ -129,4 +129,65 @@ final class SwiftVCoreTests: XCTestCase {
         let elapsed2 = Date().timeIntervalSince(start2)
         print("TLB Disabled elapsed: \(elapsed2)")
     }
+
+    func testRiscvTests_rv32ui_p() throws {
+
+        var elfPaths = getFiles(
+            regex: "^rv32ui-p-(?!.*(\\.dump$|fence_i$)).*",
+            directory: "Tests/SwiftVCoreTests/Resources/riscv-tests/target/share/riscv-tests/isa"
+        )
+
+
+        for elfPath in elfPaths {
+            // print("Executing \(elfPath)")
+            execTest(elfPath: elfPath)
+        }
+
+    }
 }
+
+func execTest(elfPath: String) {
+    let cpu = Cpu(
+        bus: Bus(),
+        instructionSets: [
+            RV32I(),
+            ZiCsr(),
+            MachineLevelISA(),
+            SupervisorLevelISA()
+        ]
+    )
+
+    ElfLoader.load(path: elfPath, bus: cpu.bus)
+
+    cpu.run()
+    let result = cpu.xregs.read(.a0)
+
+    if result != 0 {
+        print("Failed: \(elfPath) -> \(result)")
+    }
+
+    XCTAssertEqual(result, 0)
+}
+
+func getFiles(regex: String, directory: String) -> [String] {
+    let fileManager = FileManager.default
+    var matchedFiles = [String]()
+
+    do {
+        let files = try fileManager.contentsOfDirectory(atPath: directory)
+        let regex = try NSRegularExpression(pattern: regex)
+
+        for file in files {
+            let range = NSRange(location: 0, length: file.utf16.count)
+            if regex.firstMatch(in: file, options: [], range: range) != nil {
+                let filePath = (directory as NSString).appendingPathComponent(file)
+                matchedFiles.append(filePath)
+            }
+        }
+    } catch {
+        print("Error reading directory contents: \(error.localizedDescription)")
+    }
+
+    return matchedFiles
+}
+
