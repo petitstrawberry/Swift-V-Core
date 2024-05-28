@@ -1,0 +1,15 @@
+{
+  "originHash" : "7aa223b42bd422161f5613ae8d9b744d495f8326bec9fb64b11d8d8fbb996957",
+  "pins" : [
+    {
+      "identity" : "elfparser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/petitstrawberry/ElfParser",
+      "state" : {
+        "revision" : "72904f0def7c7c266863dc41d595dd02dfbfbcda",
+        "version" : "0.1.1"
+      }
+    }
+  ],
+  "version" : 3
+}

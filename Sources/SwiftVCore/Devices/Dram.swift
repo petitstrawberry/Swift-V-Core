@@ -1,6 +1,6 @@
 public let kMemorySize: UInt32 = 256 * 1024 * 1024 // 256MB
 
-public struct Dram: Device {
+public class Dram: Device {
     public let startAddr: UInt64 = 0x8000_0000
     public let endAddr: UInt64 = 0x8000_0000 + UInt64(kMemorySize) - 1
 
@@ -28,17 +28,17 @@ public struct Dram: Device {
             | UInt32(mem[intAddr + 3]) << 24 as UInt32
     }
 
-    public mutating func write8(addr: UInt64, data: UInt8) {
+    public func write8(addr: UInt64, data: UInt8) {
         mem[Int(addr - startAddr)] = data
     }
 
-    public mutating func write16(addr: UInt64, data: UInt16) {
+    public func write16(addr: UInt64, data: UInt16) {
         let intAddr = Int(addr - startAddr)
         mem[intAddr] = UInt8(data & 0xFF)
         mem[intAddr + 1] = UInt8((data >> 8) & 0xFF)
     }
 
-    public mutating func write32(addr: UInt64, data: UInt32) {
+    public func write32(addr: UInt64, data: UInt32) {
         let intAddr = Int(addr - startAddr)
         mem[intAddr] = UInt8(data & 0xFF)
         mem[intAddr + 1] = UInt8((data >> 8) & 0xFF)
