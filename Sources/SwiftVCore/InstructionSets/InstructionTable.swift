@@ -37,9 +37,15 @@ public struct InstructionTable {
                     if let funct7 = instruction.funct7 {
                         table[Int(opcode)][Int(funct3)][Int(funct7)] = index
                     } else {
-                        table[Int(opcode)][Int(funct3)] = Array(
-                            repeating: index, count: kFunct7Max + 1
-                        )
+                        if let funct5 = instruction.funct5 {
+                            for param in 0...0b11 {
+                                table[Int(opcode)][Int(funct3)][Int(funct5) << 2 + param] = index
+                            }
+                        } else {
+                            table[Int(opcode)][Int(funct3)] = Array(
+                                repeating: index, count: kFunct7Max + 1
+                            )
+                        }
                     }
                 } else {
                     table[Int(opcode)] = Array(

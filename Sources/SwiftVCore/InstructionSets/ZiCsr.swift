@@ -3,7 +3,7 @@ struct ZiCsr: InstructionSet {
     var csrs: [Csr] = []
     var instructions: [Instruction] = [
         // CSRRW
-        Instruction(name: "CSRRW", type: .I, opcode: 0b1110011, funct3: 0b001, funct7: nil) { cpu, inst in
+        Instruction(name: "CSRRW", type: .I, opcode: 0b1110011, funct3: 0b001) { cpu, inst in
             let csr = inst >> 20
             let rs1 = (inst >> 15) & 0b11111
             let rd = (inst >> 7) & 0b11111
@@ -18,7 +18,7 @@ struct ZiCsr: InstructionSet {
             cpu.pc &+= 4
         },
         // CSRRS
-        Instruction(name: "CSRRS", type: .I, opcode: 0b1110011, funct3: 0b010, funct7: nil) { cpu, inst in
+        Instruction(name: "CSRRS", type: .I, opcode: 0b1110011, funct3: 0b010) { cpu, inst in
             let csr = inst >> 20
             let rs1 = (inst >> 15) & 0b11111
             let rd = (inst >> 7) & 0b11111
@@ -33,7 +33,7 @@ struct ZiCsr: InstructionSet {
             cpu.pc &+= 4
         },
         // CSRRC
-        Instruction(name: "CSRRC", type: .I, opcode: 0b1110011, funct3: 0b011, funct7: nil) { cpu, inst in
+        Instruction(name: "CSRRC", type: .I, opcode: 0b1110011, funct3: 0b011) { cpu, inst in
             let csr = inst >> 20
             let rs1 = (inst >> 15) & 0b11111
             let rd = (inst >> 7) & 0b11111
@@ -48,7 +48,7 @@ struct ZiCsr: InstructionSet {
             cpu.pc &+= 4
         },
         // CSRRWI
-        Instruction(name: "CSRRWI", type: .I, opcode: 0b1110011, funct3: 0b101, funct7: nil) { cpu, inst in
+        Instruction(name: "CSRRWI", type: .I, opcode: 0b1110011, funct3: 0b101) { cpu, inst in
             let csr = inst >> 20
             let uimm = (inst >> 15) & 0b11111
             let rd = (inst >> 7) & 0b11111
@@ -61,7 +61,7 @@ struct ZiCsr: InstructionSet {
             cpu.pc &+= 4
         },
         // CSRRSI
-        Instruction(name: "CSRRSI", type: .I, opcode: 0b1110011, funct3: 0b110, funct7: nil) { cpu, inst in
+        Instruction(name: "CSRRSI", type: .I, opcode: 0b1110011, funct3: 0b110) { cpu, inst in
             let csr = inst >> 20
             let uimm = (inst >> 15) & 0b11111
             let rd = (inst >> 7) & 0b11111
@@ -75,7 +75,7 @@ struct ZiCsr: InstructionSet {
             cpu.pc &+= 4
         },
         // CSRRCI
-        Instruction(name: "CSRRCI", type: .I, opcode: 0b1110011, funct3: 0b111, funct7: nil) { cpu, inst in
+        Instruction(name: "CSRRCI", type: .I, opcode: 0b1110011, funct3: 0b111) { cpu, inst in
             let csr = inst >> 20
             let uimm = (inst >> 15) & 0b11111
             let rd = (inst >> 7) & 0b11111

@@ -17,18 +17,46 @@ public struct Instruction: Identifiable {
     public let opcode: UInt8
     public let funct3: UInt8?
     public let funct7: UInt8?
+    public let funct5: UInt8?
 
     public let closure: (Cpu, UInt32) throws -> Void
 
     public init(name: String, type: InstructionType, mode: Cpu.PriviligedMode = .user,
-                opcode: UInt8, funct3: UInt8? = nil, funct7: UInt8? = nil,
+                opcode: UInt8, funct3: UInt8? = nil,
                 closure: @escaping (Cpu, UInt32) throws -> Void) {
         self.name = name
         self.type = type
         self.mode = mode
         self.opcode = opcode
         self.funct3 = funct3
+        self.funct5 = nil
+        self.funct7 = nil
+        self.closure = closure
+    }
+
+    public init(name: String, type: InstructionType, mode: Cpu.PriviligedMode = .user,
+                opcode: UInt8, funct3: UInt8, funct7: UInt8,
+                closure: @escaping (Cpu, UInt32) throws -> Void) {
+        self.name = name
+        self.type = type
+        self.mode = mode
+        self.opcode = opcode
+        self.funct3 = funct3
+        self.funct5 = nil
         self.funct7 = funct7
+        self.closure = closure
+    }
+
+    public init(name: String, type: InstructionType, mode: Cpu.PriviligedMode = .user,
+                opcode: UInt8, funct3: UInt8, funct5: UInt8,
+                closure: @escaping (Cpu, UInt32) throws -> Void) {
+        self.name = name
+        self.type = type
+        self.mode = mode
+        self.opcode = opcode
+        self.funct3 = funct3
+        self.funct5 = funct5
+        self.funct7 = nil
         self.closure = closure
     }
 
