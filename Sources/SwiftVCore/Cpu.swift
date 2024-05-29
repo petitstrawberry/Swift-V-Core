@@ -7,6 +7,7 @@ public class Cpu {
     }
 
     let hartid: UInt32
+    var reservationSet: Set<UInt32> = []
     var pc: UInt32 = 0x1000
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
@@ -117,7 +118,11 @@ public class Cpu {
                 ) {
                     try instruction.execute(cpu: self, inst: inst)
                 } else {
-                    print("Unknown opcode: 0b\(String(opcode, radix: 2))")
+                    print("Unknown instruction")
+                    print("opcode: 0b\(String(opcode, radix: 2))")
+                    print("funct3: 0b\(String(funct3, radix: 2))")
+                    print("funct7: 0b\(String(funct7, radix: 2))")
+
                     if opcode == 0 {
                         halt = true
                     } else {
