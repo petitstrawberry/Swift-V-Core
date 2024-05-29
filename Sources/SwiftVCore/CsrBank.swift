@@ -4,9 +4,13 @@ public struct CsrBank {
     var csrs: [Csr]
 
     public init() {
-        // Initialize all CSRs to a dummy CSR
-        let csr = Csr(name: "Dummy CSR", addr: UInt32(0), value: 0)
-        self.csrs = Array(repeating: csr, count: CsrBank.kCSRCount)
+        // Initialize all CSRs  with 0
+        self.csrs = []
+        for addr in 0..<CsrBank.kCSRCount {
+            self.csrs.append(
+                Csr(name: "CSR_0x\(String(addr, radix: 16))", addr: UInt32(addr), value: 0)
+            )
+        }
     }
 
     public mutating func load(instructionSets: [InstructionSet]) {
