@@ -151,6 +151,17 @@ final class SwiftVCoreTests: XCTestCase {
             execTest(elfPath: elfPath)
         }
     }
+
+    func testRiscvTests_rv32ua_p() throws {
+        let elfPaths = getFiles(
+            regex: "^rv32ua-p-(?!.*(\\.dump$)).*",
+            directory: "Tests/SwiftVCoreTests/Resources/riscv-tests/target/share/riscv-tests/isa"
+        )
+
+        for elfPath in elfPaths {
+            execTest(elfPath: elfPath)
+        }
+    }
 }
 
 func execTest(elfPath: String) {
