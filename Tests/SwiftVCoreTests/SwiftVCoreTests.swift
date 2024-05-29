@@ -172,6 +172,7 @@ func execTest(elfPath: String) {
         instructionSets: [
             RV32I(),
             RV32M(),
+            RV32A(),
             ZiCsr(),
             MachineLevelISA(),
             SupervisorLevelISA()
