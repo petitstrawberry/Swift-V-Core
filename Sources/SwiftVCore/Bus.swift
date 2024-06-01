@@ -1,6 +1,7 @@
 public class Bus {
     var dram = Dram()
     var rom = Rom()
+    var uart0 = Uart()
     var devices: [Device] = []
 
     public func addDevice(_ device: Device) {
@@ -13,6 +14,8 @@ public class Bus {
             return dram.read8(addr: addr)
         case rom.startAddr...rom.endAddr:
             return rom.read8(addr: addr)
+        case uart0.startAddr...uart0.endAddr:
+            return uart0.read8(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -30,6 +33,8 @@ public class Bus {
             dram.write8(addr: addr, data: data)
         case rom.startAddr...rom.endAddr:
             throw Trap.exception(.storeAMOAccessFault)
+        case uart0.startAddr...uart0.endAddr:
+            uart0.write8(addr: addr, data: data)
         default:
             for index in devices.indices {
                 let device = devices[index]
