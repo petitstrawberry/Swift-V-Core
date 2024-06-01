@@ -8,14 +8,17 @@ public class Cpu {
 
     let hartid: UInt32
     var reservationSet: Set<UInt32> = []
+    var wfi: Bool = false
+    var mode: PriviligedMode = .machine
     var pc: UInt32 = 0x1000
+
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
     var csrBank: CsrBank = CsrBank()
-    var mmu: Mmu = Mmu()
 
-    var mode: PriviligedMode = .machine
+    var mmu: Mmu = Mmu()
     var bus: Bus
+
     var instructionTable = InstructionTable()
 
     public init(hartid: UInt32 = 0, bus: Bus, instructionSets: [InstructionSet]) {
@@ -101,6 +104,9 @@ public class Cpu {
 
         while (!halt) {
             do {
+                // Check interrupt
+                try checkInterrupt()
+
                 // Fetch
                 // print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
@@ -134,8 +140,7 @@ public class Cpu {
                 }
             } catch Trap.interrupt(let interrupt, tval: let tval) {
                 do {
-                    // TODO: Interrupt
-                    // try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
+                    try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
                 } catch {
                     print("Trap Error: \(error.localizedDescription)")
                     halt = true

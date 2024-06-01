@@ -20,7 +20,15 @@ struct MachineLevelISA: InstructionSet {
 
             //　Set pc to mepc
             cpu.pc = mepc
-        }
+        },
+        // WFI
+        Instruction(name: "WFI", type: .I, mode: .machine,
+                        opcode: 0b1110011, funct3: 0b000, funct7: 0b0001000) { cpu, _ in
+            // Wait for interrupt
+            // set wfi flag
+            cpu.wfi = true
+            cpu.pc &+= 4
+        },
     ]
     var csrs: [Csr] = [
         //  Information Registers
