@@ -27,34 +27,20 @@ class Mip: Csr {
         self.value = (self.value & ~field.mask) | (value << field.shift)
     }
 
-    enum Fields {
-        case ssip
-        case msip
-        case stip
-        case mtip
-        case seip
-        case meip
+    enum Fields: UInt32 {
+        case ssip = 1
+        case msip = 3
+        case stip = 5
+        case mtip = 7
+        case seip = 9
+        case meip = 11
 
         var mask: UInt32 {
-            switch self {
-            case .ssip: return 1 << 1
-            case .msip: return 1 << 3
-            case .stip: return 1 << 5
-            case .mtip: return 1 << 7
-            case .seip: return 1 << 9
-            case .meip: return 1 << 11
-            }
+            return 1 << self.rawValue
         }
 
         var shift: UInt32 {
-            switch self {
-            case .ssip: return 1
-            case .msip: return 3
-            case .stip: return 5
-            case .mtip: return 7
-            case .seip: return 9
-            case .meip: return 11
-            }
+            return self.rawValue
         }
     }
 }
