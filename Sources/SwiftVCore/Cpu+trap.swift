@@ -1,7 +1,7 @@
 extension Cpu {
     func handleTrap(interrupt: Bool, trap: UInt32, tval: UInt32) throws {
         // Get cause
-        let cause = trap | (interrupt ? 1 << 31 : 0)
+        let cause = UInt32(1 << trap) | UInt32(interrupt ? 1 << 31 : 0)
         // Get current mode as previous mode
         let previousMode = mode
         // Get tval
@@ -33,9 +33,10 @@ extension Cpu {
             throw CpuError.notImplemented
         }
 
-        // TODO: Interrupt
-        // if interrupt {
-        // }
+        // TODO: disable interrupts
+        if interrupt {
+            self.wfi = false
+        }
 
         // Get tvec register
         let tvec = switch newMode {
@@ -49,9 +50,9 @@ extension Cpu {
         // Set epc, cause, tval
         switch newMode {
         case .machine:
-            try writeRawCsr(CsrBank.RegAddr.mepc, epc)
-            try writeRawCsr(CsrBank.RegAddr.mcause, cause)
-            try writeRawCsr(CsrBank.RegAddr.mtval, tval)
+            writeRawCsr(CsrBank.RegAddr.mepc, epc)
+            writeRawCsr(CsrBank.RegAddr.mcause, cause)
+            writeRawCsr(CsrBank.RegAddr.mtval, tval)
         // TODO: Other modes
         default:
             throw CpuError.notImplemented
@@ -64,6 +65,10 @@ extension Cpu {
         // Set MIE to 0
         status.write(cpu: self, field: .mie, value: 0)
 
+        // Set MPP to previous mode
+        status.write(cpu: self, field: .mpp, value: previousMode.rawValue)
+
+        // Chnage mode to new mode
         mode = newMode
 
         // Set pc to tvec
@@ -72,6 +77,23 @@ extension Cpu {
             tvec.read(cpu: self, field: .base)
         } else {
             tvec.read(cpu: self, field: .base) + cause * 4
+        }
+    }
+
+    // check pending interrupts
+    func checkInterrupt() throws {
+        let mip = getRawCsr(CsrBank.RegAddr.mip) as Mip
+        let mie = getRawCsr(CsrBank.RegAddr.mie) as Mie
+
+        let pending = try Int(mip.read(cpu: self) & mie.read(cpu: self))
+
+        if pending > 0 {
+            // Get the highest priority interrupt
+            if let interrupt = Interrupt(rawValue: UInt32(pending.bitWidth) - 1) {
+                let mip = getRawCsr(CsrBank.RegAddr.mip) as Mip
+                mip.value &= ~(1 << interrupt.rawValue)
+                throw Trap.interrupt(interrupt, tval: 0)
+            }
         }
     }
 }

@@ -104,6 +104,9 @@ public class Cpu {
 
         while (!halt) {
             do {
+                // Check interrupt
+                try checkInterrupt()
+
                 // Fetch
                 // print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
@@ -137,8 +140,7 @@ public class Cpu {
                 }
             } catch Trap.interrupt(let interrupt, tval: let tval) {
                 do {
-                    // TODO: Interrupt
-                    // try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
+                    try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
                 } catch {
                     print("Trap Error: \(error.localizedDescription)")
                     halt = true
