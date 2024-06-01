@@ -137,7 +137,13 @@ final class SwiftVCoreTests: XCTestCase {
         )
 
         for elfPath in elfPaths {
-            execTest(elfPath: elfPath)
+            let result = execTest(elfPath: elfPath)
+            if result == 0 {
+                print("Passed")
+            } else {
+                print("Failed: \(result)")
+            }
+            XCTAssertEqual(result, 0)
         }
     }
 
@@ -148,7 +154,13 @@ final class SwiftVCoreTests: XCTestCase {
         )
 
         for elfPath in elfPaths {
-            execTest(elfPath: elfPath)
+            let result = execTest(elfPath: elfPath)
+            if result == 0 {
+                print("Passed")
+            } else {
+                print("Failed: \(result)")
+            }
+            XCTAssertEqual(result, 0)
         }
     }
 
@@ -159,12 +171,28 @@ final class SwiftVCoreTests: XCTestCase {
         )
 
         for elfPath in elfPaths {
-            execTest(elfPath: elfPath)
+            let result = execTest(elfPath: elfPath)
+            if result == 0 {
+                print("Passed")
+            } else {
+                print("Failed: \(result)")
+            }
+            XCTAssertEqual(result, 0)
         }
+    }
+
+    func testUart() {
+        let result = execTest(elfPath: "Tests/SwiftVCoreTests/Resources/hello-uart")
+        if result == 0 {
+            print("Passed")
+        } else {
+            print("Failed: \(result)")
+        }
+        XCTAssertEqual(result, 0)
     }
 }
 
-func execTest(elfPath: String) {
+func execTest(elfPath: String) -> UInt32 {
     print("Executing \(elfPath)")
 
     let cpu = Cpu(
@@ -180,17 +208,10 @@ func execTest(elfPath: String) {
     )
 
     ElfLoader.load(path: elfPath, bus: cpu.bus)
+    print("elf loaded")
 
     cpu.run()
-    let result = cpu.xregs.read(.a0)
-
-    if result == 0 {
-        print("Passed")
-    } else {
-        print("Failed: \(result)")
-    }
-
-    XCTAssertEqual(result, 0)
+    return cpu.xregs.read(.a0)
 }
 
 func getFiles(regex: String, directory: String) -> [String] {
@@ -214,4 +235,3 @@ func getFiles(regex: String, directory: String) -> [String] {
 
     return matchedFiles
 }
-
