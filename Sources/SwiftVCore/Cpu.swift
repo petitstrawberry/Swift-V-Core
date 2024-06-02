@@ -15,6 +15,7 @@ public class Cpu {
     var wfi: Bool = false
     var mode: PriviligedMode = .machine
     var pc: UInt32 = 0x1000
+    var cycle: UInt64 = 0
 
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
@@ -161,6 +162,11 @@ public class Cpu {
                 halt = true
             }
         }
+    }
+
+    func incrementCycle() {
+        cycle += 1
+        bus.tick(mip: getRawCsr(CsrBank.RegAddr.mip) as! Mip)
     }
 }
 

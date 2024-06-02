@@ -2,7 +2,7 @@ extension CsrBank.RegAddr {
     static let mip: UInt32 = 0x344
 }
 
-class Mip: Csr {
+public class Mip: Csr {
     public required init(name: String, addr: UInt32, value: UInt32 = 0) {
         super.init(name: name, addr: addr, value: value)
     }
@@ -11,11 +11,11 @@ class Mip: Csr {
         super.init(name: "mip", addr: 0x344, value: 0)
     }
 
-    override func read(cpu: Cpu) throws -> UInt32 {
+    public override func read(cpu: Cpu) throws -> UInt32 {
         return value
     }
 
-    override func write(cpu: Cpu, value: UInt32) throws {
+    public override func write(cpu: Cpu, value: UInt32) throws {
         self.value = value
     }
 
