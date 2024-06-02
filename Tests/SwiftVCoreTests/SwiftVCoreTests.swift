@@ -42,8 +42,6 @@ final class SwiftVCoreTests: XCTestCase {
             0xe3, 0x1c, 0x05, 0xfe
         ]
 
-        let data: [UInt8] = []
-
         let cpu = Cpu(
             bus: Bus(),
             instructionSets: [
