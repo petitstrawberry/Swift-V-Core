@@ -1,3 +1,5 @@
+import Foundation
+
 public class Cpu {
 
     public enum PriviligedMode: UInt32 {
@@ -7,6 +9,8 @@ public class Cpu {
     }
 
     let hartid: UInt32
+    var arch: UInt32 = 0
+
     var reservationSet: Set<UInt32> = []
     var wfi: Bool = false
     var mode: PriviligedMode = .machine
@@ -24,7 +28,8 @@ public class Cpu {
     public init(hartid: UInt32 = 0, bus: Bus, instructionSets: [InstructionSet]) {
         self.hartid = hartid
         self.bus = bus
-        instructionTable.load(instructionSets: instructionSets)
+        self.arch = 0
+        instructionTable.load(cpu: self, instructionSets: instructionSets)
         csrBank.load(instructionSets: instructionSets)
     }
 
@@ -104,12 +109,25 @@ public class Cpu {
 
         while (!halt) {
             do {
+                // usleep(100000/60)
                 // Check interrupt
                 try checkInterrupt()
 
+                if pc == 0x8000_08f0 {
+                    print("PC: 0x\(String(pc, radix: 16))")
+                    print("a5: \(Int32(bitPattern: xregs.read(.a5)))")
+                    // as Int
+                    print("a5: 0x\(String(xregs.read(.a5), radix: 16))")
+                    // halt = true
+                    // break
+                    usleep(1000000/60)
+                }
+
                 // Fetch
-                // print("PC: 0x\(String(pc, radix: 16))")
+                print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
+
+                // print("a1: 0x\(String(xregs.read(.a1), radix: 16))")
 
                 // Decode
                 let opcode: Int = Int(inst & 0b111_1111)
