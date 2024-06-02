@@ -8,6 +8,8 @@ public protocol Device {
     func write16(addr: UInt64, data: UInt16)
     func read32(addr: UInt64) -> UInt32
     func write32(addr: UInt64, data: UInt32)
+
+    func tick(mip: Mip, bus: Bus)
 }
 
 extension Device {
@@ -41,4 +43,6 @@ extension Device {
         write8(addr: addr + 2, data: UInt8((data >> 16) & 0xff))
         write8(addr: addr + 3, data: UInt8((data >> 24) & 0xff))
     }
+
+    public func tick(mip: Mip, bus: Bus) {}
 }

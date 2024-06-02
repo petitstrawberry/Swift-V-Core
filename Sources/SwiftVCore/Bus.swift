@@ -2,6 +2,7 @@ public class Bus {
     var dram = Dram()
     var rom = Rom()
     var uart0 = Uart()
+    var clint = Clint()
     var devices: [Device] = []
 
     public func addDevice(_ device: Device) {
@@ -16,6 +17,8 @@ public class Bus {
             return rom.read8(addr: addr)
         case uart0.startAddr...uart0.endAddr:
             return uart0.read8(addr: addr)
+        case clint.startAddr...clint.endAddr:
+            return clint.read8(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -35,6 +38,8 @@ public class Bus {
             throw Trap.exception(.storeAMOAccessFault)
         case uart0.startAddr...uart0.endAddr:
             uart0.write8(addr: addr, data: data)
+        case clint.startAddr...clint.endAddr:
+            clint.write8(addr: addr, data: data)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -53,6 +58,8 @@ public class Bus {
             return dram.read16(addr: addr)
         case rom.startAddr...rom.endAddr:
             return rom.read16(addr: addr)
+        case clint.startAddr...clint.endAddr:
+            return clint.read16(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -70,6 +77,8 @@ public class Bus {
             dram.write16(addr: addr, data: data)
         case rom.startAddr...rom.endAddr:
             throw Trap.exception(.storeAMOAccessFault)
+        case clint.startAddr...clint.endAddr:
+            clint.write16(addr: addr, data: data)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -88,6 +97,8 @@ public class Bus {
             return dram.read32(addr: addr)
         case rom.startAddr...rom.endAddr:
             return rom.read32(addr: addr)
+        case clint.startAddr...clint.endAddr:
+            return clint.read32(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -105,6 +116,8 @@ public class Bus {
             dram.write32(addr: addr, data: data)
         case rom.startAddr...rom.endAddr:
             throw Trap.exception(.storeAMOAccessFault)
+        case clint.startAddr...clint.endAddr:
+            clint.write32(addr: addr, data: data)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -114,6 +127,13 @@ public class Bus {
                 }
             }
             throw Trap.exception(.storeAMOAccessFault)
+        }
+    }
+
+    func tick(mip: Mip) {
+        clint.tick(mip: mip, bus: self)
+        devices.forEach {
+            $0.tick(mip: mip, bus: self)
         }
     }
 }
