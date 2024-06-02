@@ -37,6 +37,7 @@ struct MachineLevelISA: InstructionSet {
         // mstatus
         Mstatus(),
         // misa
+        Misa(),
         // medeleg
         // mideleg
         // mie

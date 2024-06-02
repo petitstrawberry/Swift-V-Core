@@ -1,4 +1,5 @@
 struct RV32M: InstructionSet {
+    let isa = 1 << 12
     let instructions: [Instruction] = [
         // MUL
         Instruction(name: "MUL", type: .R, opcode: 0b0110011, funct3: 0b000, funct7: 0b000001) { cpu, inst in

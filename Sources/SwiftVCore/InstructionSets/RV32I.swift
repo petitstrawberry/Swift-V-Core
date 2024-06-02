@@ -1,4 +1,5 @@
 struct RV32I: InstructionSet {
+    let isa = 1 << 8
     let instructions: [Instruction] = [
         // LUI
         Instruction(name: "LUI", type: .U, opcode: 0b0110111) { cpu, inst in

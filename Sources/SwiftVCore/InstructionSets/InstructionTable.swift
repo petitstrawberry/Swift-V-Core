@@ -25,8 +25,11 @@ public struct InstructionTable {
         return instructions[Int(index)]
     }
 
-    public mutating func load(instructionSets: [InstructionSet]) {
+    public mutating func load(cpu: Cpu, instructionSets: [InstructionSet]) {
         for instructionSet in instructionSets {
+
+            cpu.arch |= instructionSet.isa
+
             for instruction in instructionSet.instructions {
                 instructions.append(instruction)
                 let index = UInt16(instructions.count - 1)
