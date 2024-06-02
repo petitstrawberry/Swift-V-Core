@@ -109,22 +109,8 @@ public class Cpu {
 
         while (!halt) {
             do {
-                // usleep(100000/60)
-                // Check interrupt
-                try checkInterrupt()
-
-                if pc == 0x8000_08f0 {
-                    print("PC: 0x\(String(pc, radix: 16))")
-                    print("a5: \(Int32(bitPattern: xregs.read(.a5)))")
-                    // as Int
-                    print("a5: 0x\(String(xregs.read(.a5), radix: 16))")
-                    // halt = true
-                    // break
-                    usleep(1000000/60)
-                }
-
                 // Fetch
-                print("PC: 0x\(String(pc, radix: 16))")
+                // print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
 
                 // print("a1: 0x\(String(xregs.read(.a1), radix: 16))")
