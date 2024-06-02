@@ -1,3 +1,5 @@
+import Foundation
+
 public class Cpu {
 
     public enum PriviligedMode: UInt32 {
@@ -7,21 +9,27 @@ public class Cpu {
     }
 
     let hartid: UInt32
+    var arch: UInt32 = 0
+
     var reservationSet: Set<UInt32> = []
+    var wfi: Bool = false
+    var mode: PriviligedMode = .machine
     var pc: UInt32 = 0x1000
+
     var xregs: Xregisters = Xregisters()
     var fregs: Fregisters = Fregisters()
     var csrBank: CsrBank = CsrBank()
-    var mmu: Mmu = Mmu()
 
-    var mode: PriviligedMode = .machine
+    var mmu: Mmu = Mmu()
     var bus: Bus
+
     var instructionTable = InstructionTable()
 
     public init(hartid: UInt32 = 0, bus: Bus, instructionSets: [InstructionSet]) {
         self.hartid = hartid
         self.bus = bus
-        instructionTable.load(instructionSets: instructionSets)
+        self.arch = 0
+        instructionTable.load(cpu: self, instructionSets: instructionSets)
         csrBank.load(instructionSets: instructionSets)
     }
 
@@ -105,6 +113,8 @@ public class Cpu {
                 // print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
 
+                // print("a1: 0x\(String(xregs.read(.a1), radix: 16))")
+
                 // Decode
                 let opcode: Int = Int(inst & 0b111_1111)
                 let funct3: Int = Int((inst >> 12) & 0b111)
@@ -134,8 +144,7 @@ public class Cpu {
                 }
             } catch Trap.interrupt(let interrupt, tval: let tval) {
                 do {
-                    // TODO: Interrupt
-                    // try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
+                    try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
                 } catch {
                     print("Trap Error: \(error.localizedDescription)")
                     halt = true

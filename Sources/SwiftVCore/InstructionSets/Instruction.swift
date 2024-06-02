@@ -61,6 +61,10 @@ public struct Instruction: Identifiable {
     }
 
     func execute(cpu: Cpu, inst: UInt32) throws {
+        // wait for interrupt
+        if cpu.wfi {
+            return
+        }
         // check if the instruction is a privileged instruction
         if opcode == 0b1110011 {
             if cpu.mode.rawValue < mode.rawValue {

@@ -21,6 +21,9 @@ let package = Package(
             name: "SwiftVCore",
             dependencies: [
                 .product(name: "ElfParser", package: "ElfParser"),
+            ],
+            resources: [
+                .copy("Resources")
             ]
         ),
         .testTarget(

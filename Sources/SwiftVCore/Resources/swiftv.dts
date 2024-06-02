@@ -1,0 +1,50 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <0x02>;
+    #size-cells = <0x02>;
+    compatible = "riscv-virtio";
+    model = "riscv-virtio,qemu";
+
+    chosen {
+        bootargs = "root=/dev/vda ro console=ttyS0";
+        stdout-path = "/uart@10000000";
+    };
+
+    uart@10000000 {
+        interrupts = <0xa>;
+        interrupt-parent = <0x03>;
+        clock-frequency = <0x384000>;
+        reg = <0x0 0x10000000 0x0 0x100>;
+        compatible = "ns16550a";
+    };
+
+    cpus {
+        #address-cells = <0x01>;
+        #size-cells = <0x00>;
+        timebase-frequency = <0x989680>;
+
+        cpu-map {
+            cluster0 {
+                core0 {
+                    cpu = <0x01>;
+                };
+            };
+        };
+
+        cpu@0 {
+            phandle = <0x01>;
+            device_type = "cpu";
+            reg = <0x00>;
+            status = "okay";
+            compatible = "riscv";
+            riscv,isa = "rv32imasu";
+            mmu-type = "riscv,sv32";
+        };
+    };
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x0 0x80000000 0x0 0x8000000>;
+	};
+};
