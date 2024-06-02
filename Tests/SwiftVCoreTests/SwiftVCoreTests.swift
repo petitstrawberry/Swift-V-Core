@@ -202,6 +202,7 @@ func execTest(elfPath: String) -> UInt32 {
             RV32M(),
             RV32A(),
             ZiCsr(),
+            Zifencei(),
             MachineLevelISA(),
             SupervisorLevelISA()
         ]

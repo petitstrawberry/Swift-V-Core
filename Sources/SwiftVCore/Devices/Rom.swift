@@ -54,7 +54,6 @@ public class Rom: Device {
             | UInt32(rom[intAddr + 1]) << 8 as UInt32
             | UInt32(rom[intAddr + 2]) << 16 as UInt32
             | UInt32(rom[intAddr + 3]) << 24 as UInt32
-        print("Read32: 0x\(String(ret, radix: 16))")
         return ret
     }
 
