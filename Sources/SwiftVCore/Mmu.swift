@@ -14,7 +14,7 @@ public struct Mmu {
     }
 
     func getAddressingMode(cpu: Cpu) -> AddressingMode {
-        return try! cpu.readRawCsr(CsrBank.RegAddr.satp) & 0x8000_0000 == 0 ? .bare : .sv32
+        return cpu.readRawCsr(CsrBank.RegAddr.satp) & 0x8000_0000 == 0 ? .bare : .sv32
     }
 
     protocol VaddrTranslator {
