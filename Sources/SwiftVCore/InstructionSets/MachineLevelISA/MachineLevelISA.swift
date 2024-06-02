@@ -4,7 +4,7 @@ struct MachineLevelISA: InstructionSet {
         Instruction(name: "MRET", type: .R, mode: .machine,
                         opcode: 0b1110011, funct3: 0b000, funct7: 0b0011000) { cpu, _ in
             let mstatus = cpu.getRawCsr(CsrBank.RegAddr.mstatus) as Mstatus
-            let mepc = try cpu.readRawCsr(CsrBank.RegAddr.mepc)
+            let mepc = cpu.readRawCsr(CsrBank.RegAddr.mepc)
 
             // Restore mie from mstatus.mpie value
             mstatus.write(cpu: cpu, field: .mie, value: mstatus.read(cpu: cpu, field: .mpie))
