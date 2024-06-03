@@ -37,7 +37,7 @@ let package = Package(
             dependencies: ["SwiftVCore"],
             resources: [
                 .copy("Resources")
-            ],
-        ),
+            ]
+        )
     ]
 )
