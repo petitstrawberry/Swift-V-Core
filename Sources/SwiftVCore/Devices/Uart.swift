@@ -6,12 +6,13 @@ public class Uart: Device {
     public let startAddr: UInt64
     public let endAddr: UInt64
 
+    var regs: [UInt8] = [UInt8](repeating: 0, count: Int(size))
+
     public init(startAddr: UInt64 =  0x1000_0000) {
         self.startAddr = startAddr
         self.endAddr = startAddr + Uart.size - 1
+        regs[RegAddr.lsr] = 1 << 5
     }
-
-    var regs: [UInt8] = [UInt8](repeating: 0, count: Int(size))
 
     public struct RegAddr {
         static let rhr = 0b000
