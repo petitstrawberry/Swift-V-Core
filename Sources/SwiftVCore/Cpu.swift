@@ -110,6 +110,9 @@ public class Cpu {
 
         while (!halt) {
             do {
+                // increment cycle
+                incrementCycle()
+
                 // Fetch
                 // print("PC: 0x\(String(pc, radix: 16))")
                 let inst: UInt32 = try fetch(addr: pc)
@@ -129,10 +132,10 @@ public class Cpu {
                 ) {
                     try instruction.execute(cpu: self, inst: inst)
                 } else {
-                    print("Unknown instruction")
-                    print("opcode: 0b\(String(opcode, radix: 2))")
-                    print("funct3: 0b\(String(funct3, radix: 2))")
-                    print("funct7: 0b\(String(funct7, radix: 2))")
+                    // print("Unknown instruction")
+                    // print("opcode: 0b\(String(opcode, radix: 2))")
+                    // print("funct3: 0b\(String(funct3, radix: 2))")
+                    // print("funct7: 0b\(String(funct7, radix: 2))")
 
                     if opcode == 0 {
                         halt = true
@@ -147,21 +150,22 @@ public class Cpu {
                 do {
                     try handleTrap(interrupt: true, trap: interrupt.rawValue, tval: tval)
                 } catch {
-                    print("Trap Error: \(error.localizedDescription)")
+                    print("Trap Error: \(error)")
                     halt = true
                 }
             } catch Trap.exception(let exception, tval: let tval) {
                 do {
                     try handleTrap(interrupt: false, trap: exception.rawValue, tval: tval)
                 } catch {
-                    print("Trap Error: \(error.localizedDescription)")
+                    print("Trap Error: \(error)")
                     halt = true
                 }
             } catch {
-                print("Unknown Trap: \(error.localizedDescription)")
+                print("Unknown Trap: \(error)")
                 halt = true
             }
         }
+        print("Halted at PC: 0x\(String(pc, radix: 16))")
     }
 
     func incrementCycle() {
