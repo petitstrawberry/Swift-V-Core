@@ -24,6 +24,12 @@ let package = Package(
             ],
             resources: [
                 .copy("Resources")
+            ],
+            swiftSettings: [
+                // optimize for testing
+                .unsafeFlags([
+                    "-Ounchecked"
+                ])
             ]
         ),
         .testTarget(
@@ -31,7 +37,7 @@ let package = Package(
             dependencies: ["SwiftVCore"],
             resources: [
                 .copy("Resources")
-            ]
+            ],
         ),
     ]
 )
