@@ -42,8 +42,6 @@ final class SwiftVCoreTests: XCTestCase {
             0xe3, 0x1c, 0x05, 0xfe
         ]
 
-        let data: [UInt8] = []
-
         let cpu = Cpu(
             bus: Bus(),
             instructionSets: [
@@ -143,7 +141,6 @@ final class SwiftVCoreTests: XCTestCase {
             } else {
                 print("Failed: \(result)")
             }
-
             XCTAssertEqual(result, 0)
         }
     }
@@ -161,7 +158,6 @@ final class SwiftVCoreTests: XCTestCase {
             } else {
                 print("Failed: \(result)")
             }
-
             XCTAssertEqual(result, 0)
         }
     }
@@ -179,9 +175,18 @@ final class SwiftVCoreTests: XCTestCase {
             } else {
                 print("Failed: \(result)")
             }
-
             XCTAssertEqual(result, 0)
         }
+    }
+
+    func testUart() {
+        let result = execTest(elfPath: "Tests/SwiftVCoreTests/Resources/hello-uart")
+        if result == 0 {
+            print("Passed")
+        } else {
+            print("Failed: \(result)")
+        }
+        XCTAssertEqual(result, 0)
     }
 }
 
@@ -202,6 +207,7 @@ func execTest(elfPath: String) -> UInt32 {
     )
 
     ElfLoader.load(path: elfPath, bus: cpu.bus)
+    print("elf loaded")
 
     cpu.run()
     return cpu.xregs.read(.a0)
@@ -228,4 +234,3 @@ func getFiles(regex: String, directory: String) -> [String] {
 
     return matchedFiles
 }
-

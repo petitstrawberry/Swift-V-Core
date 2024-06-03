@@ -1,6 +1,7 @@
 public class Bus {
     var dram = Dram()
     var rom = Rom()
+    var uart0 = Uart()
     var clint = Clint()
     var devices: [Device] = []
 
@@ -14,6 +15,8 @@ public class Bus {
             return dram.read8(addr: addr)
         case rom.startAddr...rom.endAddr:
             return rom.read8(addr: addr)
+        case uart0.startAddr...uart0.endAddr:
+            return uart0.read8(addr: addr)
         case clint.startAddr...clint.endAddr:
             return clint.read8(addr: addr)
         default:
@@ -33,6 +36,8 @@ public class Bus {
             dram.write8(addr: addr, data: data)
         case rom.startAddr...rom.endAddr:
             throw Trap.exception(.storeAMOAccessFault)
+        case uart0.startAddr...uart0.endAddr:
+            uart0.write8(addr: addr, data: data)
         case clint.startAddr...clint.endAddr:
             clint.write8(addr: addr, data: data)
         default:
