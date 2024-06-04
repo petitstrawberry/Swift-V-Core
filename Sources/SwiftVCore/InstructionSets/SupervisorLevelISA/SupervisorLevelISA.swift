@@ -2,7 +2,7 @@ struct SupervisorLevelISA: InstructionSet {
     let isa = 1 << 18
     var instructions: [Instruction] = [
         Instruction(name: "SRET", type: .R, mode: .machine,
-                        opcode: 0b1110011, funct3: 0b000, funct7: 0b0011000, rs2: 0b00010) { cpu, _ in
+                        opcode: 0b1110011, funct3: 0b000, funct7: 0b0001000, rs2: 0b00010) { cpu, _ in
             let sstatus = cpu.getRawCsr(CsrBank.RegAddr.sstatus) as Sstatus
             let sepc = cpu.readRawCsr(CsrBank.RegAddr.sepc)
 
