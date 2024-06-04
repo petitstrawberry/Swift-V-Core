@@ -23,7 +23,7 @@ struct MachineLevelISA: InstructionSet {
         },
         // WFI
         Instruction(name: "WFI", type: .I, mode: .machine,
-                        opcode: 0b1110011, funct3: 0b000, funct7: 0b0001000) { cpu, _ in
+                        opcode: 0b1110011, funct3: 0b000, funct7: 0b0001000, rs2: 0b00101) { cpu, _ in
             // Wait for interrupt
             // set wfi flag
             cpu.wfi = true
