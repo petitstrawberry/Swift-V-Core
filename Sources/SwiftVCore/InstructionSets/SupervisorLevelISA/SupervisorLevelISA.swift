@@ -19,6 +19,14 @@ struct SupervisorLevelISA: InstructionSet {
     ]
 
     var csrs: [Csr] = [
-        Satp()
+        // Protection and Translation
+        Satp(),
+        // Trap Setup
+        Sstatus(),
+        Sie(),
+        Stvec(),
+        // Trap Handling
+        Scause(),
+        Sip()
     ]
 }

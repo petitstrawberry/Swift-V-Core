@@ -40,46 +40,25 @@ class Sstatus: Csr {
                 Fields.mxr.mask |
                 Fields.sd.mask
 
-    enum Fields {
-        case sie
-        case mie
-        case ube
-        case spp
-        case vs
-        case fs
-        case xs
-        case sum
-        case mxr
-        case sd
+    enum Fields: UInt32 {
+        case sie = 1
+        case mie = 3
+        case spie = 5
+        case ube = 6
+        case spp = 8
+        case vs = 9
+        case fs = 13
+        case xs = 15
+        case sum = 18
+        case mxr = 19
+        case sd = 31
 
         var mask: UInt32 {
-            switch self {
-            case .sie: return 1 << 1
-            case .mie: return 1 << 3
-            case .ube: return 1 << 6
-            case .spp: return 1 << 8
-            case .vs: return 0b111 << 9
-            case .fs: return 0b11 << 13
-            case .xs: return 0b11 << 15
-            case .sum: return 1 << 18
-            case .mxr: return 1 << 19
-            case .sd: return 1 << 31
-            }
+            1 << self.rawValue
         }
 
         var shift: UInt32 {
-            switch self {
-            case .sie: return 1
-            case .mie: return 3
-            case .ube: return 6
-            case .spp: return 8
-            case .vs: return 9
-            case .fs: return 13
-            case .xs: return 15
-            case .sum: return 18
-            case .mxr: return 19
-            case .sd: return 31
-            }
+            self.rawValue
         }
     }
 }

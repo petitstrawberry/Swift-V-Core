@@ -2,8 +2,6 @@ extension Cpu {
     func handleTrap(interrupt: Bool, trap: UInt32, tval: UInt32) throws {
         // Get cause
         let cause = UInt32(1 << trap) | UInt32(interrupt ? 1 << 31 : 0)
-        // Get current mode as previous mode
-        let previousMode = mode
         // Get tval
         let tval = switch interrupt {
         case true: UInt32(0)
@@ -16,21 +14,17 @@ extension Cpu {
         }
 
         // TODO: Check delegation
-        // let mdeleg = switch interrupt {
-        //  case true: try readCsr(CsrBank.RegAddr.mideleg)
-        //  case false: try readCsr(CsrBank.RegAddr.medeleg)
-        // }
+        let deleg = if interrupt {
+            readRawCsr(CsrBank.RegAddr.mideleg)
+        } else {
+            readRawCsr(CsrBank.RegAddr.medeleg)
+        }
 
         // TODO: Delegation to supervisor / user mode
-        let newMode = previousMode
-
-        // Get status register
-        let status = switch previousMode {
-        case .machine:
-            getRawCsr(CsrBank.RegAddr.mstatus) as Mstatus
-        // TODO: Other modes
-        default:
-            throw CpuError.notImplemented
+        let newMode: PriviligedMode = if mode.rawValue <= PriviligedMode.supervisor.rawValue && (deleg & cause) > 0 {
+            .supervisor
+        } else {
+            .machine
         }
 
         // TODO: disable interrupts
@@ -38,46 +32,67 @@ extension Cpu {
             self.wfi = false
         }
 
-        // Get tvec register
-        let tvec = switch newMode {
-        case .machine:
-            getRawCsr(CsrBank.RegAddr.mtvec) as Mtvec
-        // TODO: Other modes
-        default:
-            throw CpuError.notImplemented
-        }
-
-        // Set epc, cause, tval
         switch newMode {
         case .machine:
+            // Get status register
+            let status = getRawCsr(CsrBank.RegAddr.mstatus) as Mstatus
+
+            // Get tvec register
+            let tvec = getRawCsr(CsrBank.RegAddr.mtvec) as Mtvec
+
+            // Set epc, cause, tval
             writeRawCsr(CsrBank.RegAddr.mepc, epc)
             writeRawCsr(CsrBank.RegAddr.mcause, cause)
             writeRawCsr(CsrBank.RegAddr.mtval, tval)
-        // TODO: Other modes
+
+            // Get MIE
+            let mie = status.read(cpu: self, field: .mie)
+            // Set MPIE to MIE
+            status.write(cpu: self, field: .mpie, value: mie)
+            // Set MIE to 0
+            status.write(cpu: self, field: .mie, value: 0)
+            // Set MPP to previous mode
+            status.write(cpu: self, field: .mpp, value: mode.rawValue)
+
+            // Set pc to tvec
+            // if tvec is vector mode, pc = tvec.base + cause * 4
+            if tvec.read(cpu: self, field: .mode) == 0 {
+                self.pc = tvec.value & 0xffff_fffc
+            } else {
+                self.pc = tvec.read(cpu: self, field: .base) <<  2 + cause * 4
+            }
+        case .supervisor:
+            // Get status register
+            let status = getRawCsr(CsrBank.RegAddr.sstatus) as Sstatus
+
+            // Get tvec register
+            let tvec = getRawCsr(CsrBank.RegAddr.stvec) as Stvec
+
+            // Set epc, cause, tval
+            writeRawCsr(CsrBank.RegAddr.sepc, epc)
+            writeRawCsr(CsrBank.RegAddr.scause, cause)
+            writeRawCsr(CsrBank.RegAddr.stval, tval)
+            // Get SIE
+            let sie = status.read(cpu: self, field: .sie)
+            // Set SPIE to SIE
+            status.write(cpu: self, field: .spie, value: sie)
+            // Set SIE to 0
+            status.write(cpu: self, field: .sie, value: 0)
+            // Set SPP to previous mode
+            status.write(cpu: self, field: .spp, value: mode.rawValue)
+            // Set pc to tvec
+            // if tvec is vector mode, pc = tvec.base + cause * 4
+            if tvec.read(cpu: self, field: .mode) == 0 {
+                self.pc = tvec.value & 0xffff_fffc
+            } else {
+                self.pc = tvec.read(cpu: self, field: .base) <<  2 + cause * 4
+            }
         default:
-            throw CpuError.notImplemented
+            fatalError("Not implemented yet")
         }
-
-        // Get MIE
-        let mie = status.read(cpu: self, field: .mie)
-        // Set MPIE to MIE
-        status.write(cpu: self, field: .mpie, value: mie)
-        // Set MIE to 0
-        status.write(cpu: self, field: .mie, value: 0)
-
-        // Set MPP to previous mode
-        status.write(cpu: self, field: .mpp, value: previousMode.rawValue)
 
         // Chnage mode to new mode
         mode = newMode
-
-        // Set pc to tvec
-        // if tvec is vector mode, pc = tvec.base + cause * 4
-        pc = if tvec.read(cpu: self, field: .mode) == 0 {
-            tvec.read(cpu: self, field: .base)
-        } else {
-            tvec.read(cpu: self, field: .base) + cause * 4
-        }
     }
 
     // check pending interrupts
