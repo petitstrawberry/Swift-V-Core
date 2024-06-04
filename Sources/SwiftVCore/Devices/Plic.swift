@@ -31,6 +31,8 @@ public class Plic: Device {
     var threshold: [UInt32] = Array(repeating: 0, count: 8)
     var claim: [UInt32] = Array(repeating: 0, count: 8)
 
+    var updatedClaim: Bool = false
+
     public func read8(addr: UInt64) -> UInt8 {
         return 0
     }
@@ -121,29 +123,37 @@ public class Plic: Device {
         pending[interrupt / 32] |= 1 << (interrupt % 32)
         if isEnabled(context: context, interrupt: interrupt) {
             claim[context] = UInt32(interrupt)
+            updatedClaim = true
         }
     }
 
     public func tick(mip: Mip, bus: Bus) {
-        // var interrupt = -1
-        // for context in 0..<2 {
-        //     if threshold[context] == 0 {
-        //         continue
-        //     }
-        //     if
-        // }
+        let hartid = 0
+        if !updatedClaim {
+            return
+        }
+        updatedClaim = false
+        var interrupt = -1
+        var context = -1
+        for index in 0..<2 {
+            let index = index + hartid*2
+            if threshold[index] == 0 {
+                continue
+            }
+            if claim[index] != 0 {
+                interrupt = Int(claim[index])
+                context = index
+                break
+            }
+        }
 
-        // if interrupt == -1 {
-        //     continue
-        // }
-
-        // if interrupt > 0 {
-        //     if context % 2 == 0 {
-        //         mip.value = mip.value | Mip.Fields.meip.mask
-        //     } else {
-        //         mip.value = mip.value | Mip.Fields.seip.mask
-        //     }
-        // }
+        if interrupt > 0 {
+            if context % 2 == 0 {
+                mip.value = mip.value | Mip.Fields.meip.mask
+            } else {
+                mip.value = mip.value | Mip.Fields.seip.mask
+            }
+        }
         // enable[context][interrupt / 32] |= 1 << (interrupt % 32)
         // pending[interrupt / 32] |= 1 << (interrupt % 32)
     }
