@@ -123,12 +123,13 @@ public class Cpu {
                 let opcode: Int = Int(inst & 0b111_1111)
                 let funct3: Int = Int((inst >> 12) & 0b111)
                 let funct7: Int = Int(inst >> 25)
+                let rs2: Int = Int((inst >> 20) & 0b11111)
 
                 // print("Opcode: 0b\(String(opcode, radix: 2)) Funct3: 0b\(String(funct3, radix: 2))  Funct7: 0b\(String(funct7, radix: 2))")
 
                 // Execute
                 if let instruction = instructionTable.getInstruction(
-                    opcode: UInt8(opcode), funct3: UInt8(funct3), funct7: UInt8(funct7)
+                    opcode: UInt8(opcode), funct3: UInt8(funct3), funct7: UInt8(funct7), rs2: UInt8(rs2)
                 ) {
                     try instruction.execute(cpu: self, inst: inst)
                 } else {
