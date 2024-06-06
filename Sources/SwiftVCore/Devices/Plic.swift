@@ -29,10 +29,12 @@ public class Plic: Device {
         ),
         count: 8
     )
-    var threshold: [UInt32] = Array(repeating: 0, count: 8)
-    var claim: [UInt32] = Array(repeating: 0, count: 8)
+    var threshold: [UInt32] = Array(repeating: 0, count: contextNum)
+    // var claim: [UInt32] = Array(repeating: 0, count: 8)
 
-    var updatedClaim: Bool = false
+    var updatedPending: Bool = false
+
+    var pendingCount: Int = 0
 
     public func read8(addr: UInt64) -> UInt8 {
         return 0
@@ -109,49 +111,65 @@ public class Plic: Device {
 
     func completedInterrupt(context: Int, interrupt: Int) {
         pending[interrupt / 32] &= ~(1 << (interrupt % 32))
-        claim[context] = 0
-        updatedClaim = true
+        // claim[context] = 0
+        updatedPending = true
     }
 
     func claimedInterrupt(context: Int) -> UInt32 {
-        // TODO: return response by priority?
-        return claim[context]
+        // return the highest priority interrupt
+        var maxPriority: UInt32 = 0
+        var response: UInt32 = 0
+        for interrupt in 0..<Plic.interruptSourceNum
+        where isEnabled(context: context, interrupt: interrupt)
+            && (pending[interrupt / 32] & (1 << (interrupt % 32))) != 0
+            && maxPriority < priority[interrupt / 32] {
+            if threshold[context] > priority[interrupt] {
+                continue
+            }
+            maxPriority = priority[interrupt]
+            response = UInt32(interrupt)
+        }
+        pending[Int(response) / 32] &= ~(1 << (response % 32))
+        pendingCount -= 1
+        updatedPending = true
+
+        return response
     }
 
     public func interruptRequest(interrupt: UInt32) {
         let interrupt = Int(interrupt)
-        pending[interrupt / 32] |= 1 << (interrupt % 32)
-        for context in 0..<8
-        where isEnabled(context: context, interrupt: interrupt) {
-            claim[context] = UInt32(interrupt)
-            updatedClaim = true
+        if pending[interrupt / 32] & (1 << (interrupt % 32)) != 0 {
+            return
         }
+
+        pending[interrupt / 32] |= 1 << (interrupt % 32)
+        pendingCount += 1
+        updatedPending = true
     }
 
     //  notify interrupt per hart
     public func tick(hartid: UInt32, mip: Mip, bus: Bus) {
         let hartid = Int(hartid)
 
-        if !updatedClaim {
+        if !updatedPending || pendingCount == 0 {
+            updatedPending = false
             return
         }
-        updatedClaim = false
+
+        updatedPending = false
 
         for context in 0..<2 {
             let index = context + hartid * 2
             if threshold[index] == 0 {
                 continue
             }
-
-            if claim[index] != 0 {
-                switch context {
-                case 0:
-                    mip.value = mip.value | Mip.Fields.meip.mask
-                case 1:
-                    mip.value = mip.value | Mip.Fields.seip.mask
-                default:
-                    fatalError()
-                }
+            switch context {
+            case 0:
+                mip.value = mip.value | Mip.Fields.meip.mask
+            case 1:
+                mip.value = mip.value | Mip.Fields.seip.mask
+            default:
+                fatalError()
             }
         }
     }
