@@ -171,7 +171,7 @@ public class Cpu {
 
     func incrementCycle() {
         cycle += 1
-        bus.tick(mip: getRawCsr(CsrBank.RegAddr.mip) as! Mip)
+        bus.tick(hartid: hartid, mip: getRawCsr(CsrBank.RegAddr.mip) as! Mip)
     }
 }
 
