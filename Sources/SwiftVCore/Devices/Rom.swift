@@ -37,8 +37,6 @@ public class Rom: Device {
 
     public func read8(addr: UInt64) -> UInt8 {
         let ret =  rom[Int(addr - startAddr)]
-        print("addr: 0x\(String(addr, radix: 16))")
-        print("Read8: 0x\(String(ret, radix: 16))")
         return ret
     }
 
