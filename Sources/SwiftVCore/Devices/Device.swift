@@ -9,7 +9,6 @@ public protocol Device {
     func read32(addr: UInt64) -> UInt32
     func write32(addr: UInt64, data: UInt32)
 
-    func tick(mip: Mip, bus: Bus)
 }
 
 extension Device {

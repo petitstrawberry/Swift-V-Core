@@ -143,11 +143,8 @@ public class Bus {
         }
     }
 
-    func tick(mip: Mip) {
+    func tick(hartid: UInt32, mip: Mip) {
         clint.tick(mip: mip, bus: self)
-        plic.tick(mip: mip, bus: self)
-        devices.forEach {
-            $0.tick(mip: mip, bus: self)
-        }
+        plic.tick(hartid: hartid, mip: mip, bus: self)
     }
 }

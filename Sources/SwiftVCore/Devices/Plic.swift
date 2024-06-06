@@ -1,11 +1,12 @@
 public class Plic: Device {
     static let base: UInt64 = 0xc00_0000
-    static let size: UInt64 = contextBase + 2 * 4 * contextStride
+    static let size: UInt64 = contextBase + UInt64(contextNum) * contextStride
 
     public let startAddr: UInt64 = base
     public let endAddr: UInt64 = base + size - 1
 
     static let interruptSourceNum: Int = 1024
+    static let contextNum: Int = 4 * 2 // 4 harts, 2 contexts per hart
 
     static let priorityBase: UInt64 = 0x0
     static let prioritySize: UInt64 = 0x1000
@@ -62,7 +63,7 @@ public class Plic: Device {
             case Plic.thresholdOffset:
                 return threshold[context]
             case Plic.claimOffset:
-                return claim[context]
+                return claimedInterrupt(context: context)
             default:
                 return 0
             }
@@ -93,8 +94,7 @@ public class Plic: Device {
             case Plic.thresholdOffset:
                 threshold[context] = data
             case Plic.claimOffset:
-                // claim[context] = data
-                completeInterrupt(context: context, interrupt: Int(data))
+                completedInterrupt(context: context, interrupt: Int(data))
             default:
                 break
             }
@@ -107,54 +107,52 @@ public class Plic: Device {
         return enable[context][interrupt / 32] & (1 << (interrupt % 32)) != 0
     }
 
-    func completeInterrupt(context: Int, interrupt: Int) {
+    func completedInterrupt(context: Int, interrupt: Int) {
         pending[interrupt / 32] &= ~(1 << (interrupt % 32))
-        // enable[context][interrupt / 32] &= ~(1 << (interrupt % 32))
         claim[context] = 0
+        updatedClaim = true
     }
 
-    func claimInterrupt(context: Int, interrupt: Int) {
-        if isEnabled(context: context, interrupt: interrupt) {
-            claim[context] = UInt32(interrupt)
-        }
+    func claimedInterrupt(context: Int) -> UInt32 {
+        // TODO: return response by priority?
+        return claim[context]
     }
 
-    public func interruptRequest(context: Int, interrupt: Int) {
+    public func interruptRequest(interrupt: UInt32) {
+        let interrupt = Int(interrupt)
         pending[interrupt / 32] |= 1 << (interrupt % 32)
-        if isEnabled(context: context, interrupt: interrupt) {
+        for context in 0..<8
+        where isEnabled(context: context, interrupt: interrupt) {
             claim[context] = UInt32(interrupt)
             updatedClaim = true
         }
     }
 
-    public func tick(mip: Mip, bus: Bus) {
-        let hartid = 0
+    //  notify interrupt per hart
+    public func tick(hartid: UInt32, mip: Mip, bus: Bus) {
+        let hartid = Int(hartid)
+
         if !updatedClaim {
             return
         }
         updatedClaim = false
-        var interrupt = -1
-        var context = -1
-        for index in 0..<2 {
-            let index = index + hartid*2
+
+        for context in 0..<2 {
+            let index = context + hartid * 2
             if threshold[index] == 0 {
                 continue
             }
-            if claim[index] != 0 {
-                interrupt = Int(claim[index])
-                context = index
-                break
-            }
-        }
 
-        if interrupt > 0 {
-            if context % 2 == 0 {
-                mip.value = mip.value | Mip.Fields.meip.mask
-            } else {
-                mip.value = mip.value | Mip.Fields.seip.mask
+            if claim[index] != 0 {
+                switch context {
+                case 0:
+                    mip.value = mip.value | Mip.Fields.meip.mask
+                case 1:
+                    mip.value = mip.value | Mip.Fields.seip.mask
+                default:
+                    fatalError()
+                }
             }
         }
-        // enable[context][interrupt / 32] |= 1 << (interrupt % 32)
-        // pending[interrupt / 32] |= 1 << (interrupt % 32)
     }
 }
