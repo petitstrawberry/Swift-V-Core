@@ -84,7 +84,7 @@ public class Plic: Device {
         case Plic.priorityBase..<Plic.priorityBase + Plic.prioritySize:
             priority[Int(addr / 4)] = data
         case Plic.pendingBase..<Plic.pendingBase + Plic.pendingSize:
-            pending[Int(addr / 4)] = data
+            break
         case Plic.enableBase..<Plic.enableBase + Plic.enableSize:
             let context = Int((addr - Plic.enableBase) / Plic.enableStride)
             enable[context][Int((addr - Plic.enableBase) / 4)] = data
@@ -136,7 +136,7 @@ public class Plic: Device {
         return response
     }
 
-    public func interruptRequest(interrupt: UInt32) {
+    public func requestInterrupt(interrupt: UInt32) {
         let interrupt = Int(interrupt)
         if pending[interrupt / 32] & (1 << (interrupt % 32)) != 0 {
             return
