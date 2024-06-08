@@ -1,21 +1,29 @@
-public struct VirtQueue {
+public class VirtQueue {
     public var descTable: [Desc] = []
     public var availRing: Avail?
     public var usedRing: Used?
 
-    public var queueNum: UInt32 = 0
+    public var lastAvailIdx: UInt16 = 0
+
     public var queueNumMax: UInt32 = 32
+    public var queueNum: UInt32 = 0
+    public var queueAlign: UInt32 = 0
+    public var queuePfn: UInt32 = 0
     public var queueReady: UInt32 = 0
     public var queueNotify: UInt32 = 0
     public var descAddr: UInt64 = 0
     public var driverAddr: UInt64 = 0 // Available ring
     public var deviceAddr: UInt64 = 0 // Used ring
 
-    public mutating func reset() {
+    public func reset() {
         descTable = []
         availRing = nil
         usedRing = nil
+        lastAvailIdx = 0
+        queueNumMax = 32
         queueNum = 0
+        queueAlign = 0
+        queuePfn = 0
         queueReady = 0
         queueNotify = 0
         descAddr = 0
@@ -23,21 +31,41 @@ public struct VirtQueue {
         deviceAddr = 0
     }
 
-    public mutating func loadQueue(bus: Bus) {
-        guard queueNum > 0 else {
+    public func loadQueue(bus: Bus, virtio: VirtioDevice) {
+        if queueNum == 0 {
             return
         }
-        descTable = (0..<queueNum).map { i in
-            let descAddr = self.descAddr + 16 * UInt64(i)
-            return Desc(bus: bus, addr: descAddr)
+
+        switch virtio.version {
+        case 0x01:
+            let baseAddr = UInt64(queuePfn) * UInt64(virtio.guestPageSize)
+            let availAddr = baseAddr + UInt64(queueNum) * 16
+            let usedAddr = availAddr + 6 + UInt64(queueNum) * 2
+
+            descTable = (0..<queueNum).map { i in
+                let descAddr = baseAddr + 16 * UInt64(i)
+                return Desc(bus: bus, addr: descAddr)
+            }
+            availRing = Avail(bus: bus, addr: availAddr, ququeNum: Int(queueNum))
+            usedRing = Used(bus: bus, addr: usedAddr, ququeNum: Int(queueNum))
+
+        case 0x02:
+            descTable = (0..<queueNum).map { i in
+                let descAddr = self.descAddr + 16 * UInt64(i)
+                return Desc(bus: bus, addr: descAddr)
+            }
+            availRing = Avail(bus: bus, addr: driverAddr, ququeNum: Int(queueNum))
+            usedRing = Used(bus: bus, addr: deviceAddr, ququeNum: Int(queueNum))
+        default:
+            return
         }
-        availRing = Avail(bus: bus, addr: driverAddr, ququeNum: Int(queueNum))
-        usedRing = Used(bus: bus, addr: deviceAddr, ququeNum: Int(queueNum))
+
+
     }
 }
 
 extension VirtQueue {
-    public struct Desc {
+    public class Desc {
         public var addr: UnsafeMutablePointer<UInt64>
         public var len: UnsafeMutablePointer<UInt32>
         public var flags: UnsafeMutablePointer<UInt16>
@@ -57,7 +85,7 @@ extension VirtQueue {
 }
 
 extension VirtQueue {
-    public struct Avail {
+    public class Avail {
         public var flags: UnsafeMutablePointer<UInt16>
         public var idx: UnsafeMutablePointer<UInt16>
         public var ring: [UnsafeMutablePointer<UInt16>]
@@ -85,7 +113,7 @@ extension VirtQueue {
 }
 
 extension VirtQueue {
-    public struct Used {
+    public class Used {
         public var flags: UnsafeMutablePointer<UInt16>
         public var idx: UnsafeMutablePointer<UInt16>
         public let ring: [Elem]
@@ -104,7 +132,7 @@ extension VirtQueue {
         }
     }
 
-    public struct Elem {
+    public class Elem {
         public var id: UnsafeMutablePointer<UInt32>
         public var len: UnsafeMutablePointer<UInt32>
 
