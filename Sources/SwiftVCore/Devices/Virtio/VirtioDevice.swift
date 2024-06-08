@@ -1,25 +1,46 @@
 public class VirtioDevice: Device {
     public let startAddr: UInt64
     public let endAddr: UInt64
+    public weak var bus: Bus?
 
-    public init() {
-        fatalError("Must implemented in subclass")
-    }
+    var virtQueues: [VirtQueue]
 
-    public init(startAddr: UInt64, endAddr: UInt64, deviceID: UInt32, queueNumMax: UInt32) {
+    public init(startAddr: UInt64, endAddr: UInt64, deviceID: UInt32, virtQueueCount: Int) {
         self.startAddr = startAddr
         self.endAddr = endAddr
         self.deviceID = deviceID
-        self.queueNumMax = queueNumMax
-        self.queueDescLow = Array(repeating: 0, count: Int(queueNumMax))
-        self.queueDescHigh = Array(repeating: 0, count: Int(queueNumMax))
-        self.queueDriverLow = Array(repeating: 0, count: Int(queueNumMax))
-        self.queueDriverHigh = Array(repeating: 0, count: Int(queueNumMax))
-        self.queueDeviceLow = Array(repeating: 0, count: Int(queueNumMax))
-        self.queueDeviceHigh = Array(repeating: 0, count: Int(queueNumMax))
+        self.virtQueues = Array(repeating: VirtQueue(), count: virtQueueCount)
     }
 
-    // Registers
+    func updatedStatus() {
+        if status == 0 {
+            reset()
+        }
+
+        if status & 0x4 == 1 {
+            initVirtQueue()
+        }
+    }
+
+    func reset() {
+        status = 0
+        queueSel = 0
+        interruptStatus = 0
+        interruptAck = 0
+        configGeneration = 0
+        config = []
+        for index in virtQueues.indices {
+            virtQueues[index].reset()
+        }
+    }
+
+    func initVirtQueue() {
+        for index in virtQueues.indices {
+            virtQueues[index].reset()
+            virtQueues[index].loadQueue(bus: bus!)
+        }
+    }
+
     public let magicValue: UInt32 = 0x74726976 // ro
     public let version: UInt32 = 0x2 // ro
     public let deviceID: UInt32 // ro
@@ -29,19 +50,9 @@ public class VirtioDevice: Device {
     public var driverFeatures: [UInt32] = Array(repeating: 0, count: 2) // wo
     public var driverFeaturesSel: UInt32 = 0 // wo
     public var queueSel: UInt32 = 0 // wo
-    public let queueNumMax: UInt32 // ro
-    public var queueNum: UInt32 = 0 // wo
-    public var queueReady: UInt32 = 0 // rw
-    public var queueNotify: UInt32 = 0 // wo
     public var interruptStatus: UInt32 = 0 // ro
     public var interruptAck: UInt32 = 0 // wo
     public var status: UInt32 = 0 // rw
-    public var queueDescLow: [UInt32] // wo
-    public var queueDescHigh: [UInt32] // wo
-    public var queueDriverLow: [UInt32] // wo
-    public var queueDriverHigh: [UInt32] // wo
-    public var queueDeviceLow: [UInt32] // wo
-    public var queueDeviceHigh: [UInt32] // wo
     public var configGeneration: UInt32 = 0 // ro
     public var config: [UInt8] = [] // rw
 
@@ -116,23 +127,10 @@ public class VirtioDevice: Device {
     public static let configGenerationSize: UInt64 = 0x4
 
     public static let configOffset: UInt64 = 0x100
+}
 
-    public func setQueueDesc(index: Int, low: UInt32, high: UInt32) {
-        queueDescLow[index] = low
-        queueDescHigh[index] = high
-    }
-
-    public func setQueueDriver(index: Int, low: UInt32, high: UInt32) {
-        queueDriverLow[index] = low
-        queueDriverHigh[index] = high
-    }
-
-    public func setQueueDevice(index: Int, low: UInt32, high: UInt32) {
-        queueDeviceLow[index] = low
-        queueDeviceHigh[index] = high
-    }
-
-    // MMIO
+// MMIO
+extension VirtioDevice {
     public func read8(addr: UInt64) -> UInt8 {
         let addr = addr - startAddr
         let offset = addr % 4
@@ -151,9 +149,9 @@ public class VirtioDevice: Device {
         case VirtioDevice.driverFeaturesOffset..<VirtioDevice.driverFeaturesOffset + VirtioDevice.driverFeaturesSize:
             return UInt8((driverFeatures[Int(driverFeaturesSel)] >> (offset * 8)) & 0xff)
         case VirtioDevice.queueNumMaxOffset..<VirtioDevice.queueNumMaxOffset + VirtioDevice.queueNumMaxSize:
-            return UInt8((queueNumMax >> (offset * 8)) & 0xff)
+            return UInt8((virtQueues[Int(queueSel)].queueNum >> (offset * 8)) & 0xff)
         case VirtioDevice.queueReadyOffset..<VirtioDevice.queueReadyOffset + VirtioDevice.queueReadySize:
-            return UInt8((queueReady >> (offset * 8)) & 0xff)
+            return UInt8((virtQueues[Int(queueSel)].queueReady >> (offset * 8)) & 0xff)
         case VirtioDevice.interruptStatusOffset..<VirtioDevice.interruptStatusOffset + VirtioDevice.interruptStatusSize:
             return UInt8((interruptStatus >> (offset * 8)) & 0xff)
         case VirtioDevice.statusOffset..<VirtioDevice.statusOffset + VirtioDevice.statusSize:
@@ -179,33 +177,37 @@ public class VirtioDevice: Device {
         case VirtioDevice.queueSelOffset..<VirtioDevice.queueSelOffset + VirtioDevice.queueSelSize:
             queueSel = UInt32(queueSel & ~(0xff << offset) | UInt32(data) << offset)
         case VirtioDevice.queueNumOffset..<VirtioDevice.queueNumOffset + VirtioDevice.queueNumSize:
-            queueNum = UInt32(queueNum & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].queueNum
+                = UInt32(virtQueues[Int(queueSel)].queueNum & ~(0xff << offset) | UInt32(data) << offset)
         case VirtioDevice.queueReadyOffset..<VirtioDevice.queueReadyOffset + VirtioDevice.queueReadySize:
-            queueReady = UInt32(queueReady & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].queueReady
+                = UInt32(virtQueues[Int(queueSel)].queueReady & ~(0xff << offset) | UInt32(data) << offset)
         case VirtioDevice.queueNotifyOffset..<VirtioDevice.queueNotifyOffset + VirtioDevice.queueNotifySize:
-            queueNotify = UInt32(queueNotify & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].queueNotify
+                = UInt32(virtQueues[Int(queueSel)].queueNotify & ~(0xff << offset) | UInt32(data) << offset)
         case VirtioDevice.interruptAckOffset..<VirtioDevice.interruptAckOffset + VirtioDevice.interruptAckSize:
             interruptAck = UInt32(interruptAck & ~(0xff << offset) | UInt32(data) << offset)
         case VirtioDevice.statusOffset..<VirtioDevice.statusOffset + VirtioDevice.statusSize:
             status = UInt32(status & ~(0xff << offset) | UInt32(data) << offset)
+            updatedStatus()
         case VirtioDevice.queueDescLowOffset..<VirtioDevice.queueDescLowOffset + VirtioDevice.queueDescLowSize:
-            queueDescLow[Int(queueSel)]
-                = UInt32(queueDescLow[Int(queueSel)] & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].descAddr
+                = UInt64(virtQueues[Int(queueSel)].descAddr & ~(0xff << offset) | UInt64(data) << offset)
         case VirtioDevice.queueDescHighOffset..<VirtioDevice.queueDescHighOffset + VirtioDevice.queueDescHighSize:
-            queueDescHigh[Int(queueSel)]
-                = UInt32(queueDescHigh[Int(queueSel)] & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].descAddr
+                = UInt64(virtQueues[Int(queueSel)].descAddr & ~(0xff << (offset + 4)) | UInt64(data) << (offset + 4))
         case VirtioDevice.queueDriverLowOffset..<VirtioDevice.queueDriverLowOffset + VirtioDevice.queueDriverLowSize:
-            queueDriverLow[Int(queueSel)]
-                = UInt32(queueDriverLow[Int(queueSel)] & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].driverAddr
+                = UInt64(virtQueues[Int(queueSel)].driverAddr & ~(0xff << offset) | UInt64(data) << offset)
         case VirtioDevice.queueDriverHighOffset..<VirtioDevice.queueDriverHighOffset + VirtioDevice.queueDriverHighSize:
-            queueDriverHigh[Int(queueSel)]
-                = UInt32(queueDriverHigh[Int(queueSel)] & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].driverAddr
+                = UInt64(virtQueues[Int(queueSel)].driverAddr & ~(0xff << (offset + 4)) | UInt64(data) << (offset + 4))
         case VirtioDevice.queueDeviceLowOffset..<VirtioDevice.queueDeviceLowOffset + VirtioDevice.queueDeviceLowSize:
-            queueDeviceLow[Int(queueSel)]
-                = UInt32(queueDeviceLow[Int(queueSel)] & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].deviceAddr
+                = UInt64(virtQueues[Int(queueSel)].deviceAddr & ~(0xff << offset) | UInt64(data) << offset)
         case VirtioDevice.queueDeviceHighOffset..<VirtioDevice.queueDeviceHighOffset + VirtioDevice.queueDeviceHighSize:
-            queueDeviceHigh[Int(queueSel)]
-                = UInt32(queueDeviceHigh[Int(queueSel)] & ~(0xff << offset) | UInt32(data) << offset)
+            virtQueues[Int(queueSel)].deviceAddr
+                = UInt64(virtQueues[Int(queueSel)].deviceAddr & ~(0xff << (offset + 4)) | UInt64(data) << (offset + 4))
         case VirtioDevice.configOffset..<VirtioDevice.configOffset + UInt64(config.count) * 4:
             config[Int(addr - VirtioDevice.configOffset)] = data
         default:
@@ -230,9 +232,9 @@ public class VirtioDevice: Device {
         case VirtioDevice.driverFeaturesOffset:
             return driverFeatures[Int(driverFeaturesSel)]
         case VirtioDevice.queueNumMaxOffset:
-            return queueNumMax
+            return virtQueues[Int(queueSel)].queueNum
         case VirtioDevice.queueReadyOffset:
-            return queueReady
+            return virtQueues[Int(queueSel)].queueReady
         case VirtioDevice.interruptStatusOffset:
             return interruptStatus
         case VirtioDevice.statusOffset:
@@ -257,27 +259,33 @@ public class VirtioDevice: Device {
         case VirtioDevice.queueSelOffset:
             queueSel = data
         case VirtioDevice.queueNumOffset:
-            queueNum = data
+            virtQueues[Int(queueSel)].queueNum = data
         case VirtioDevice.queueReadyOffset:
-            queueReady = data
+            virtQueues[Int(queueSel)].queueReady = data
         case VirtioDevice.queueNotifyOffset:
-            queueNotify = data
+            virtQueues[Int(queueSel)].queueNotify = data
         case VirtioDevice.interruptAckOffset:
             interruptAck = data
         case VirtioDevice.statusOffset:
             status = data
+            updatedStatus()
         case VirtioDevice.queueDescLowOffset:
-            queueDescLow[Int(queueSel)] = data
+            virtQueues[Int(queueSel)].descAddr = virtQueues[Int(queueSel)].descAddr & 0xffffffff00000000 | UInt64(data)
         case VirtioDevice.queueDescHighOffset:
-            queueDescHigh[Int(queueSel)] = data
+            virtQueues[Int(queueSel)].descAddr
+                = virtQueues[Int(queueSel)].descAddr & 0x00000000ffffffff | UInt64(data) << 32
         case VirtioDevice.queueDriverLowOffset:
-            queueDriverLow[Int(queueSel)] = data
+            virtQueues[Int(queueSel)].driverAddr
+                = virtQueues[Int(queueSel)].driverAddr & 0xffffffff00000000 | UInt64(data)
         case VirtioDevice.queueDriverHighOffset:
-            queueDriverHigh[Int(queueSel)] = data
+            virtQueues[Int(queueSel)].driverAddr
+                = virtQueues[Int(queueSel)].driverAddr & 0x00000000ffffffff | UInt64(data) << 32
         case VirtioDevice.queueDeviceLowOffset:
-            queueDeviceLow[Int(queueSel)] = data
+            virtQueues[Int(queueSel)].deviceAddr
+                = virtQueues[Int(queueSel)].deviceAddr & 0xffffffff00000000 | UInt64(data)
         case VirtioDevice.queueDeviceHighOffset:
-            queueDeviceHigh[Int(queueSel)] = data
+            virtQueues[Int(queueSel)].deviceAddr
+                = virtQueues[Int(queueSel)].deviceAddr & 0x00000000ffffffff | UInt64(data) << 32
         case VirtioDevice.configOffset:
             config[Int(addr - VirtioDevice.configOffset)] = UInt8(data & 0xff)
         default:
