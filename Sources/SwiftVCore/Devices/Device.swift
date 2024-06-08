@@ -3,6 +3,8 @@ public protocol Device {
     var endAddr: UInt64 { get }
     var bus: Bus? { get set }
 
+    mutating func connect(bus: Bus)
+
     func read8(addr: UInt64) -> UInt8
     func write8(addr: UInt64, data: UInt8)
     func read16(addr: UInt64) -> UInt16
@@ -12,6 +14,10 @@ public protocol Device {
 }
 
 extension Device {
+    public mutating func connect(bus: Bus) {
+        self.bus = bus
+    }
+
     public func read8(addr: UInt64) -> UInt8 {
         fatalError("read8 not implemented")
     }

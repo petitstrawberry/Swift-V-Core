@@ -5,6 +5,7 @@ public class Uart: Device {
 
     public let startAddr: UInt64
     public let endAddr: UInt64
+    public weak var bus: Bus?
 
     var regs: [UInt8] = [UInt8](repeating: 0, count: Int(size))
 

@@ -4,10 +4,31 @@ public class Bus {
     var uart0 = Uart()
     var clint = Clint()
     var plic = Plic()
+    var virtioBlk = VirtioBlk()
     var devices: [Device] = []
+
+    var connected = false
+
+    public func connect() -> Self {
+        dram.connect(bus: self)
+        rom.connect(bus: self)
+        uart0.connect(bus: self)
+        clint.connect(bus: self)
+        plic.connect(bus: self)
+        virtioBlk.connect(bus: self)
+
+        for index in devices.indices {
+            devices[index].connect(bus: self)
+        }
+
+        connected = true
+
+        return self
+    }
 
     public func addDevice(_ device: Device) {
         devices.append(device)
+        devices[devices.count - 1].connect(bus: self)
     }
 
     func read8(addr: UInt64) throws -> UInt8 {
@@ -22,6 +43,8 @@ public class Bus {
             return clint.read8(addr: addr)
         case plic.startAddr...plic.endAddr:
             return plic.read8(addr: addr)
+        case virtioBlk.startAddr...virtioBlk.endAddr:
+            return virtioBlk.read8(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -45,6 +68,8 @@ public class Bus {
             clint.write8(addr: addr, data: data)
         case plic.startAddr...plic.endAddr:
             plic.write8(addr: addr, data: data)
+        case virtioBlk.startAddr...virtioBlk.endAddr:
+            virtioBlk.write8(addr: addr, data: data)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -110,6 +135,8 @@ public class Bus {
             return clint.read32(addr: addr)
         case plic.startAddr...plic.endAddr:
             return plic.read32(addr: addr)
+        case virtioBlk.startAddr...virtioBlk.endAddr:
+            return virtioBlk.read32(addr: addr)
         default:
             for index in devices.indices {
                 let device = devices[index]
@@ -131,6 +158,8 @@ public class Bus {
             clint.write32(addr: addr, data: data)
         case plic.startAddr...plic.endAddr:
             plic.write32(addr: addr, data: data)
+        case virtioBlk.startAddr...virtioBlk.endAddr:
+            virtioBlk.write32(addr: addr, data: data)
         default:
             for index in devices.indices {
                 let device = devices[index]

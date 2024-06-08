@@ -4,6 +4,7 @@ public class Plic: Device {
 
     public let startAddr: UInt64 = base
     public let endAddr: UInt64 = base + size - 1
+    public weak var bus: Bus?
 
     static let interruptSourceNum: Int = 1024
     static let contextNum: Int = 4 * 2 // 4 harts, 2 contexts per hart

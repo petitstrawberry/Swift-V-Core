@@ -3,6 +3,7 @@ public let kMemorySize: UInt32 = 256 * 1024 * 1024 // 256MB
 public class Dram: Device {
     public let startAddr: UInt64 = 0x8000_0000
     public let endAddr: UInt64 = 0x8000_0000 + UInt64(kMemorySize) - 1
+    public weak var bus: Bus?
 
     var mem: [UInt8]
 

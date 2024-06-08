@@ -5,6 +5,7 @@ public let kRomSize: UInt32 = 0xf000 // 60KB
 public class Rom: Device {
     public let startAddr: UInt64 = 0x1000
     public let endAddr: UInt64 = 0x1000 + UInt64(kRomSize) - 1
+    public weak var bus: Bus?
 
     var rom: [UInt8]
 

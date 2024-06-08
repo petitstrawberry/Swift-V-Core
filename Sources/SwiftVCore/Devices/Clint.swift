@@ -17,6 +17,7 @@ public class Clint: Device {
 
     public let startAddr: UInt64 = base
     public let endAddr: UInt64 = base + size - 1
+    public weak var bus: Bus?
 
     public func read8(addr: UInt64) -> UInt8 {
         switch addr {
