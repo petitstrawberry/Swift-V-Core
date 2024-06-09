@@ -161,9 +161,9 @@ public class Plic: Device {
 
         for context in 0..<2 {
             let index = context + hartid * 2
-            if threshold[index] == 0 {
-                continue
-            }
+            // if threshold[index] == 0 {
+            //     continue
+            // }
             switch context {
             case 0:
                 mip.value = mip.value | Mip.Fields.meip.mask
