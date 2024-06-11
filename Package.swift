@@ -28,7 +28,7 @@ let package = Package(
             swiftSettings: [
                 // optimize for testing
                 .unsafeFlags([
-                    "-Ounchecked"
+                    "-O"
                 ])
             ]
         ),
