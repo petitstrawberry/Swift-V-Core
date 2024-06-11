@@ -56,7 +56,7 @@ public class Plic: Device {
             return pending[Int(addr / 4)]
         case Plic.enableBase..<Plic.enableBase + Plic.enableSize:
             let context = Int((addr - Plic.enableBase) / Plic.enableStride)
-            return enable[context][Int((addr - Plic.enableBase) / 4)]
+            return enable[context][Int(((addr - Plic.enableBase) % Plic.enableStride) / 4)]
         case Plic.contextBase..<Plic.contextBase + Plic.contextStride:
             let context = Int((addr - Plic.contextBase) / Plic.contextStride)
             let offset = (addr - Plic.contextBase) % Plic.contextStride
@@ -87,7 +87,7 @@ public class Plic: Device {
             break
         case Plic.enableBase..<Plic.enableBase + Plic.enableSize:
             let context = Int((addr - Plic.enableBase) / Plic.enableStride)
-            enable[context][Int((addr - Plic.enableBase) / 4)] = data
+            enable[context][Int(((addr - Plic.enableBase) % Plic.enableStride) / 4)] = data
         case Plic.contextBase..<Plic.contextBase + Plic.contextStride:
             let context = Int((addr - Plic.contextBase) / Plic.contextStride)
             let offset = (addr - Plic.contextBase) % Plic.contextStride
