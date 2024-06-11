@@ -10,4 +10,10 @@ class Mideleg: Csr {
     init() {
         super.init(name: "mideleg", addr: 0x303, value: 0)
     }
+
+    override public func write(cpu: Cpu, value: UInt32) throws {
+        self.value = (self.value & ~mask) | (value & mask)
+    }
+
+    let mask = Mip.Fields.ssip.mask | Mip.Fields.stip.mask | Mip.Fields.seip.mask
 }
