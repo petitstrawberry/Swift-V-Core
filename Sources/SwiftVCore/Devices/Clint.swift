@@ -21,11 +21,11 @@ public class Clint: Device {
     public func read8(addr: UInt64) -> UInt8 {
         switch addr {
         case Clint.msipAddr..<Clint.msipAddr + Clint.mispSize:
-            return UInt8((msip >> (addr - Clint.msipAddr)*8) & 0xff)
+            return UInt8((msip >> ((addr - Clint.msipAddr)*8)) & 0xff)
         case Clint.mtimecmpAddr..<Clint.mtimecmpAddr + Clint.mtimecmpSize:
-            return UInt8((mtimecmp >> (addr - Clint.mtimecmpAddr)*8) & 0xff)
+            return UInt8((mtimecmp >> ((addr - Clint.mtimecmpAddr)*8)) & 0xff)
         case Clint.mtimeAddr..<Clint.mtimeAddr + Clint.mtimeSize:
-            return UInt8((mtime >> (addr - Clint.mtimeAddr)*8) & 0xff)
+            return UInt8((mtime >> ((addr - Clint.mtimeAddr)*8)) & 0xff)
         default:
             return 0
         }
@@ -35,13 +35,13 @@ public class Clint: Device {
         switch addr {
         case Clint.msipAddr..<Clint.msipAddr + Clint.mispSize:
             msip = (msip & ~(0xff << (addr - Clint.msipAddr)*8))
-            | UInt32(data) << (addr - Clint.msipAddr)*8
+            | UInt32(data) << ((addr - Clint.msipAddr)*8)
         case Clint.mtimecmpAddr..<Clint.mtimecmpAddr + Clint.mtimecmpSize:
-            mtimecmp = (mtimecmp & ~(0xff << (addr - Clint.mtimecmpAddr)*8))
-            | UInt64(data) << (addr - Clint.mtimecmpAddr)*8
+            mtimecmp = (mtimecmp & ~(0xff << ((addr - Clint.mtimecmpAddr)*8)))
+            | UInt64(data) << ((addr - Clint.mtimecmpAddr)*8)
         case Clint.mtimeAddr..<Clint.mtimeAddr + Clint.mtimeSize:
             mtime = (mtime & ~(0xff << (addr - Clint.mtimeAddr)*8))
-            | UInt64(data) << (addr - Clint.mtimeAddr)*8
+            | UInt64(data) << ((addr - Clint.mtimeAddr)*8)
         default:
             break
         }
