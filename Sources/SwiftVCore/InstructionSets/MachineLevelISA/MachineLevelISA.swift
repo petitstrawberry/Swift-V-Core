@@ -39,7 +39,9 @@ struct MachineLevelISA: InstructionSet {
         // misa
         Misa(),
         // medeleg
+        Medeleg(),
         // mideleg
+        Mideleg(),
         // mie
         Mie(),
         // mtvec
